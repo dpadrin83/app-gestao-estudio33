@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hub Estúdio 33 — Comparar direções visuais</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #f4f0e8;
+    color: #1c1814;
+    padding: 48px 32px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  p.sub {
+    text-align: center;
+    color: #6b5e54;
+    margin-bottom: 48px;
+    font-size: 15px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .opt {
+    background: white;
+    border: 1px solid #d8cfc1;
+    border-radius: 12px;
+    padding: 28px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .opt:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+  .opt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b5e54;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .opt-name {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+  .opt-desc { font-size: 14px; color: #4a4138; line-height: 1.55; }
+  .opt-swatches { display: flex; gap: 6px; margin-top: 8px; }
+  .sw { width: 24px; height: 24px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); }
+  .opt-cta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #1c1814; margin-top: 12px;
+  }
+
+  /* Bureau swatches */
+  .b1 { background: hsl(40 30% 97%); }
+  .b2 { background: hsl(18 50% 35%); }
+  .b3 { background: hsl(30 12% 12%); }
+  .b4 { background: hsl(36 22% 85%); }
+  /* Hangar swatches */
+  .h1 { background: hsl(220 14% 8%); }
+  .h2 { background: hsl(175 80% 50%); }
+  .h3 { background: hsl(220 14% 16%); }
+  .h4 { background: hsl(220 8% 92%); }
+  /* Atelier swatches */
+  .a1 { background: hsl(36 18% 94%); }
+  .a2 { background: hsl(145 22% 28%); }
+  .a3 { background: hsl(18 55% 52%); }
+  .a4 { background: hsl(24 18% 14%); }
+</style>
+</head>
+<body>
+  <h1>Hub Estúdio 33 — três direções</h1>
+  <p class="sub">Abra cada uma em uma aba. Mesmo conteúdo, três personalidades.</p>
+
+  <div class="grid">
+    <a class="opt" href="bureau.html" target="_blank">
+      <span class="opt-num">Direção 01</span>
+      <span class="opt-name">Bureau</span>
+      <span class="opt-desc">Editorial sóbrio. Papel cru, serif Fraunces, terracota, modo claro. Cansa menos em sessões longas; menos efeito-wow imediato.</span>
+      <div class="opt-swatches"><span class="sw b1"></span><span class="sw b4"></span><span class="sw b2"></span><span class="sw b3"></span></div>
+      <span class="opt-cta">Abrir →</span>
+    </a>
+
+    <a class="opt" href="hangar.html" target="_blank">
+      <span class="opt-num">Direção 02</span>
+      <span class="opt-name">Hangar</span>
+      <span class="opt-desc">Técnico denso. Modo escuro nativo, Geist + Mono, accent ciano. Densidade máxima e atalhos por toda parte; pode cansar a vista.</span>
+      <div class="opt-swatches"><span class="sw h1"></span><span class="sw h3"></span><span class="sw h2"></span><span class="sw h4"></span></div>
+      <span class="opt-cta">Abrir →</span>
+    </a>
+
+    <a class="opt" href="atelier.html" target="_blank">
+      <span class="opt-num">Direção 03</span>
+      <span class="opt-name">Atelier</span>
+      <span class="opt-desc">Expressivo tátil. Verde-musgo + ferrugem, Instrument Serif decorativa, densidade mista. Personalidade autoral; depende de execução fina.</span>
+      <div class="opt-swatches"><span class="sw a1"></span><span class="sw a2"></span><span class="sw a3"></span><span class="sw a4"></span></div>
+      <span class="opt-cta">Abrir →</span>
+    </a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hangar — Hub Estúdio 33</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background:            hsl(220 14% 8%);
+    --foreground:            hsl(220 8% 92%);
+    --card:                  hsl(220 14% 10%);
+    --card-foreground:       hsl(220 8% 92%);
+    --primary:               hsl(175 80% 50%);
+    --primary-foreground:    hsl(220 14% 8%);
+    --secondary:             hsl(220 14% 16%);
+    --secondary-foreground:  hsl(220 8% 90%);
+    --muted:                 hsl(220 14% 14%);
+    --muted-foreground:      hsl(220 6% 58%);
+    --accent:                hsl(220 14% 18%);
+    --destructive:           hsl(0 70% 55%);
+    --border:                hsl(220 14% 18%);
+    --input:                 hsl(220 14% 14%);
+    --ring:                  hsl(175 80% 50%);
+    --success:               hsl(142 65% 48%);
+    --warning:               hsl(38 92% 55%);
+    --info:                  hsl(210 80% 60%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Geist', system-ui, sans-serif;
+    font-size: 14px;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'Geist Mono', monospace; }
+
+  /* SIDEBAR */
+  aside {
+    background: var(--background);
+    border-right: 1px solid var(--border);
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .brand {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 8px 16px;
+  }
+  .brand-name {
+    font-size: 13px; font-weight: 600; letter-spacing: -0.01em;
+  }
+  .brand-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 12px var(--primary);
+  }
+  .nav-group { margin-top: 12px; }
+  .nav-label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted-foreground);
+    padding: 6px 8px 4px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 8px;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    justify-content: space-between;
+  }
+  .nav-item:hover { background: var(--secondary); color: var(--foreground); }
+  .nav-item-l { display: flex; align-items: center; gap: 10px; }
+  .nav-item.active {
+    background: var(--secondary);
+    color: var(--foreground);
+  }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: -12px; top: 6px; bottom: 6px;
+    width: 2px; background: var(--primary);
+  }
+  .ico {
+    width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted-foreground);
+    font-size: 13px;
+  }
+  .nav-item.active .ico { color: var(--primary); }
+  .kbd {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 1px 5px; border-radius: 3px;
+    line-height: 1.2;
+  }
+
+  /* MAIN */
+  main { display: flex; flex-direction: column; min-width: 0; }
+
+  /* TOPBAR */
+  .topbar {
+    height: 44px;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    background: var(--background);
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px; color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .breadcrumb strong { color: var(--foreground); font-weight: 500; }
+  .cmdbar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    width: 360px; max-width: 100%;
+    font-size: 12px; color: var(--muted-foreground);
+    justify-self: center;
+  }
+  .cmdbar .kbd { margin-left: auto; }
+  .topbar-actions { display: flex; gap: 6px; align-items: center; justify-self: end; }
+
+  /* CONTENT */
+  .content {
+    padding: 24px 32px 60px;
+    width: 100%;
+  }
+  .page-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+  .page-sub {
+    color: var(--muted-foreground);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  /* METRICS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .card:hover { border: 1px solid var(--border); padding: 15px; }
+  .card .label {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .card .value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 6px 0 4px;
+    line-height: 1;
+  }
+  .card .trend {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px; color: var(--muted-foreground);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .card .trend.up { color: var(--success); }
+  .card .trend.down { color: var(--destructive); }
+
+  /* SECTION HEAD */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px; margin-top: 8px;
+  }
+  .section-title {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--card);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  thead th.right { text-align: right; }
+  tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid hsla(220, 14%, 18%, 0.5);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  tbody td.right { text-align: right; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--secondary); }
+  td .num { font-family: 'Geist Mono', monospace; font-size: 12px; }
+
+  /* AVATAR */
+  .avatar {
+    width: 24px; height: 24px; border-radius: 4px;
+    background: var(--secondary);
+    color: var(--foreground);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Geist Mono', monospace; font-size: 10px; font-weight: 500;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-left: 2px solid hsl(175 80% 50%);
+  }
+  .avatar.v2 { border-left-color: hsl(38 92% 55%); }
+  .avatar.v3 { border-left-color: hsl(210 80% 60%); }
+  .avatar.v4 { border-left-color: hsl(280 60% 65%); }
+  .avatar.v5 { border-left-color: hsl(142 65% 48%); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: transparent;
+    border: 1px solid;
+  }
+  .badge-progress { color: var(--info); border-color: var(--info); }
+  .badge-late     { color: var(--warning); border-color: var(--warning); }
+  .badge-done     { color: var(--success); border-color: var(--success); }
+  .badge-draft    { color: var(--muted-foreground); border-color: var(--border); background: var(--muted); }
+  .badge-await    { color: var(--primary); border-color: var(--primary); }
+
+  /* PROGRESS */
+  .progress {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-width: 140px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 3px; background: var(--muted); border-radius: 1px; overflow: hidden;
+  }
+  .progress-bar > span {
+    display: block; height: 100%; background: var(--primary);
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 28px; padding: 0 10px;
+    border-radius: 4px; border: 1px solid transparent;
+    font-family: inherit; font-size: 12px; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+    color: var(--foreground);
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+  .btn-ghost { background: transparent; color: var(--muted-foreground); }
+  .btn-ghost:hover { background: var(--secondary); color: var(--foreground); }
+
+  /* GANTT */
+  .gantt {
+    background: var(--card);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .gantt-grid {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .gantt-grid + .gantt-grid { margin-top: 6px; }
+  .gantt-name {
+    font-size: 13px; color: var(--foreground);
+  }
+  .gantt-meta {
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px; color: var(--muted-foreground);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    display: block; margin-top: 1px;
+  }
+  .gantt-track {
+    height: 22px; background: var(--muted); border-radius: 3px;
+    position: relative; overflow: visible;
+  }
+  .gantt-bar {
+    position: absolute; top: 0; bottom: 0;
+    border-radius: 3px;
+  }
+  .gantt-bar::after {
+    content: attr(data-label);
+    position: absolute; top: 50%; left: calc(100% + 8px);
+    transform: translateY(-50%);
+    font-family: 'Geist Mono', monospace;
+    font-size: 10px; color: var(--muted-foreground);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+  .bar-progress { background: var(--info); }
+  .bar-late     { background: var(--warning); }
+  .bar-done     { background: var(--success); }
+  .bar-draft    { background: hsl(220 6% 35%); }
+  .bar-await    { background: var(--primary); }
+
+  /* SCALE */
+  .gantt-scale {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 12px; margin-bottom: 8px;
+  }
+  .gantt-scale-bar {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    font-family: 'Geist Mono', monospace;
+    font-size: 9px; color: var(--muted-foreground);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); padding-bottom: 6px;
+  }
+
+  /* TAG */
+  .direction-tag {
+    position: fixed; bottom: 16px; right: 16px;
+    background: var(--primary); color: var(--primary-foreground);
+    padding: 8px 14px; border-radius: 4px;
+    font-family: 'Geist Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    box-shadow: 0 0 24px hsla(175, 80%, 50%, 0.3);
+  }
+  .direction-tag small { display: block; opacity: 0.7; font-size: 9px; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <span class="brand-name">hub_e33</span>
+    <span class="brand-dot"></span>
+  </div>
+
+  <div class="nav-group">
+    <a class="nav-item active">
+      <span class="nav-item-l"><span class="ico">▦</span> Dashboard</span>
+      <span class="kbd">G D</span>
+    </a>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">▣</span> Projetos</span>
+      <span class="kbd">G P</span>
+    </a>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">○</span> Clientes</span>
+      <span class="kbd">G C</span>
+    </a>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">▥</span> Cronograma</span>
+      <span class="kbd">G G</span>
+    </a>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">⊞</span> Entregáveis</span>
+      <span class="kbd">G E</span>
+    </a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Estúdio</div>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">$</span> Financeiro</span>
+      <span class="kbd">G F</span>
+    </a>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">◷</span> Horas</span>
+      <span class="kbd">G H</span>
+    </a>
+    <a class="nav-item">
+      <span class="nav-item-l"><span class="ico">⚙</span> Settings</span>
+      <span class="kbd">,</span>
+    </a>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div class="breadcrumb">
+      <span>hub</span><span>/</span><strong>dashboard</strong>
+    </div>
+    <div class="cmdbar">
+      <span style="opacity:0.6;">⌕</span> Buscar projeto, cliente, atividade…
+      <span class="kbd">⌘ K</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost">Status</button>
+      <button class="btn btn-primary">+ Novo projeto <span class="kbd" style="background:rgba(0,0,0,0.2); border-color:transparent; color:inherit;">N</span></button>
+    </div>
+  </header>
+
+  <section class="content">
+    <div class="page-head">
+      <h1 class="page-title">Dashboard</h1>
+      <span class="kbd" style="background:transparent; border:1px solid var(--border);">18 mai · 2026</span>
+    </div>
+    <p class="page-sub">7 projetos ativos · 2 em risco · 4 aguardando aprovação</p>
+
+    <div class="metrics">
+      <div class="card">
+        <div class="label">Ativos</div>
+        <div class="value">07</div>
+        <div class="trend up">↑ +2 este mês</div>
+      </div>
+      <div class="card">
+        <div class="label">Em risco</div>
+        <div class="value">02</div>
+        <div class="trend down">prazo &lt; 7d</div>
+      </div>
+      <div class="card">
+        <div class="label">Aguard. cliente</div>
+        <div class="value">04</div>
+        <div class="trend">entregáveis</div>
+      </div>
+      <div class="card">
+        <div class="label">MRR (mai/26)</div>
+        <div class="value">38.4k</div>
+        <div class="trend up">↑ +12% vs abr</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">// projetos.ativos</h2>
+      <a class="btn btn-ghost">Ver todos →</a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Projeto</th>
+            <th>Cliente</th>
+            <th>Status</th>
+            <th>Progresso</th>
+            <th class="right">Prazo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Identidade visual</td>
+            <td><span class="avatar">CV</span>Casa Veloso</td>
+            <td><span class="badge badge-progress">em andamento</span></td>
+            <td><div class="progress"><span class="num">62%</span><div class="progress-bar"><span style="width:62%"></span></div></div></td>
+            <td class="right"><span class="num">28 MAI</span></td>
+          </tr>
+          <tr>
+            <td>Vídeo institucional</td>
+            <td><span class="avatar v2">HS</span>Hospital Sírio</td>
+            <td><span class="badge badge-late">atrasado</span></td>
+            <td><div class="progress"><span class="num">41%</span><div class="progress-bar"><span style="width:41%;background:var(--warning)"></span></div></div></td>
+            <td class="right"><span class="num">22 MAI</span></td>
+          </tr>
+          <tr>
+            <td>Landing page</td>
+            <td><span class="avatar v3">PA</span>Grupo Pão de Açúcar</td>
+            <td><span class="badge badge-await">aguardando</span></td>
+            <td><div class="progress"><span class="num">88%</span><div class="progress-bar"><span style="width:88%"></span></div></div></td>
+            <td class="right"><span class="num">06 JUN</span></td>
+          </tr>
+          <tr>
+            <td>Sistema interno</td>
+            <td><span class="avatar v4">AE</span>Albert Einstein</td>
+            <td><span class="badge badge-progress">em andamento</span></td>
+            <td><div class="progress"><span class="num">23%</span><div class="progress-bar"><span style="width:23%"></span></div></div></td>
+            <td class="right"><span class="num">18 JUL</span></td>
+          </tr>
+          <tr>
+            <td>Branding completo</td>
+            <td><span class="avatar v5">SA</span>Studio Ar</td>
+            <td><span class="badge badge-draft">rascunho</span></td>
+            <td><div class="progress"><span class="num">04%</span><div class="progress-bar"><span style="width:4%"></span></div></div></td>
+            <td class="right"><span class="num">12 AGO</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">// gantt.proximas_atividades</h2>
+      <a class="btn btn-ghost">Abrir Gantt →</a>
+    </div>
+
+    <div class="gantt">
+      <div class="gantt-scale">
+        <div></div>
+        <div class="gantt-scale-bar">
+          <span>18 mai</span><span>20</span><span>22</span><span>24</span><span>26</span><span>28</span><span>30</span><span>01 jun</span>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">aprovacao_cliente_logo</div>
+          <span class="gantt-meta">casa_veloso · 3d</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-progress" data-label="EM REVISÃO" style="left: 0%; width: 25%;"></div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">roteiro_v2</div>
+          <span class="gantt-meta">hospital_sirio · 5d</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-late" data-label="ATRASADA" style="left: 12%; width: 38%;"></div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">entrega_final_landing</div>
+          <span class="gantt-meta">pao_de_acucar · 2d</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-await" data-label="AGUARDANDO" style="left: 60%; width: 18%;"></div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">kickoff_branding</div>
+          <span class="gantt-meta">studio_ar · 1d</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-draft" data-label="RASCUNHO" style="left: 75%; width: 10%; opacity: 0.5;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="direction-tag">Hangar<small>direção 2 · técnico</small></div>
+
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atelier — Hub Estúdio 33</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background:            hsl(36 18% 94%);
+    --foreground:            hsl(24 18% 14%);
+    --card:                  hsl(36 22% 97%);
+    --card-foreground:       hsl(24 18% 14%);
+    --primary:               hsl(145 22% 28%);
+    --primary-foreground:    hsl(36 18% 96%);
+    --secondary:             hsl(18 35% 60%);
+    --secondary-foreground:  hsl(24 18% 12%);
+    --muted:                 hsl(36 14% 88%);
+    --muted-foreground:      hsl(24 10% 38%);
+    --accent:                hsl(18 55% 52%);
+    --accent-foreground:     hsl(36 18% 96%);
+    --destructive:           hsl(6 65% 42%);
+    --border:                hsl(30 14% 78%);
+    --input:                 hsl(30 14% 84%);
+    --ring:                  hsl(145 22% 35%);
+    --success:               hsl(145 35% 32%);
+    --warning:               hsl(32 65% 48%);
+    --info:                  hsl(210 30% 38%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 15px;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Instrument Serif', Georgia, serif; }
+  .serif-i { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* SIDEBAR */
+  aside {
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .brand {
+    padding: 0 4px 28px;
+  }
+  .brand-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .brand-kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    display: block;
+  }
+  .nav-group { margin-top: 20px; }
+  .nav-label {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    padding: 8px 8px 6px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 8px;
+    font-size: 14px;
+    color: var(--foreground);
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--muted); }
+  .nav-item.active {
+    background: hsla(18, 35%, 60%, 0.18);
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .ico {
+    width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted-foreground);
+    font-size: 14px;
+  }
+  .nav-item.active .ico { color: var(--primary); }
+
+  /* MAIN */
+  main { display: flex; flex-direction: column; min-width: 0; }
+
+  /* TOPBAR */
+  .topbar {
+    height: 60px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 36px;
+    background: var(--background);
+  }
+  .topbar-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    letter-spacing: -0.005em;
+    line-height: 1;
+  }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* CONTENT */
+  .content {
+    padding: 48px 56px 80px;
+    max-width: 1280px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .page-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 56px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .page-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .page-sub {
+    color: var(--muted-foreground);
+    font-size: 16px;
+    margin-bottom: 44px;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* METRICS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 56px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .card .label {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .card .value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin: 10px 0 6px;
+    line-height: 1;
+  }
+  .card .value em { font-style: italic; color: var(--accent); }
+  .card .trend {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.04em;
+  }
+  .card .trend.up { color: var(--success); }
+  .card .trend.down { color: var(--accent); }
+
+  /* SECTION HEAD */
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 20px; margin-top: 8px;
+  }
+  .section-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .section-title em { font-style: italic; color: var(--accent); }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 56px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: hsla(36, 14%, 88%, 0.4);
+  }
+  thead th.right { text-align: right; }
+  tbody td {
+    padding: 16px 24px;
+    border-bottom: 1px solid hsla(30, 14%, 78%, 0.6);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  tbody td.right { text-align: right; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: hsla(18, 35%, 60%, 0.08); }
+  td .num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  td strong { font-weight: 500; }
+
+  /* AVATAR */
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: hsl(145 22% 50%);
+    color: var(--background);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Instrument Serif', serif; font-style: italic;
+    font-size: 16px;
+    margin-right: 14px;
+    vertical-align: middle;
+  }
+  .avatar.v2 { background: hsl(18 45% 45%); }
+  .avatar.v3 { background: hsl(32 35% 50%); }
+  .avatar.v4 { background: hsl(210 25% 42%); }
+  .avatar.v5 { background: hsl(280 18% 45%); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.01em;
+  }
+  .badge-progress { background: hsla(145, 22%, 28%, 0.18); color: hsl(145 22% 20%); }
+  .badge-late     { background: hsla(18, 55%, 52%, 0.22); color: hsl(18 55% 32%); }
+  .badge-done     { background: hsla(145, 35%, 32%, 0.18); color: hsl(145 35% 22%); }
+  .badge-draft    { background: var(--muted); color: var(--muted-foreground); }
+  .badge-await    { background: hsla(32, 65%, 48%, 0.2); color: hsl(32 65% 28%); }
+
+  /* PROGRESS */
+  .progress {
+    display: inline-flex; align-items: center; gap: 10px;
+    min-width: 150px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 5px; background: var(--muted); border-radius: 3px; overflow: hidden;
+  }
+  .progress-bar > span {
+    display: block; height: 100%; background: var(--primary); border-radius: 3px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 38px; padding: 0 18px;
+    border-radius: 8px; border: 1px solid transparent;
+    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+  .btn-ghost { background: transparent; color: var(--foreground); }
+  .btn-ghost:hover { background: var(--muted); }
+  .btn-sm { height: 32px; padding: 0 14px; font-size: 13px; }
+
+  /* GANTT */
+  .gantt {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .gantt-grid {
+    display: grid; grid-template-columns: 240px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .gantt-grid + .gantt-grid { margin-top: 12px; }
+  .gantt-name {
+    font-size: 14px; color: var(--foreground); font-weight: 500;
+  }
+  .gantt-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted-foreground);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    display: block; margin-top: 2px;
+  }
+  .gantt-track {
+    height: 26px; background: var(--muted); border-radius: 6px;
+    position: relative; overflow: hidden;
+  }
+  .gantt-bar {
+    position: absolute; top: 0; bottom: 0;
+    border-radius: 6px;
+    display: flex; align-items: center;
+    padding: 0 12px;
+    font-size: 12px; color: var(--background);
+    font-weight: 500;
+  }
+  .bar-progress { background: linear-gradient(90deg, hsl(145 22% 28%), hsl(145 22% 24%)); }
+  .bar-late     { background: linear-gradient(90deg, hsl(18 55% 52%), hsl(18 55% 46%)); }
+  .bar-done     { background: linear-gradient(90deg, hsl(145 35% 32%), hsl(145 35% 28%)); }
+  .bar-draft    { background: linear-gradient(90deg, hsl(30 10% 55%), hsl(30 10% 50%)); }
+  .bar-await    { background: linear-gradient(90deg, hsl(32 65% 48%), hsl(32 65% 42%)); }
+
+  /* SCALE */
+  .gantt-scale {
+    display: grid; grid-template-columns: 240px 1fr;
+    gap: 12px; margin-bottom: 18px;
+  }
+  .gantt-scale-bar {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--muted-foreground);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); padding-bottom: 10px;
+  }
+
+  /* TAG */
+  .direction-tag {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--primary); color: var(--primary-foreground);
+    padding: 12px 18px; border-radius: 10px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 16px; font-style: italic;
+    box-shadow: 0 6px 24px hsla(145, 22%, 28%, 0.25);
+  }
+  .direction-tag small {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-style: normal;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    opacity: 0.7; margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">
+    <div class="brand-name">Hub</div>
+    <span class="brand-kicker">Estúdio 33 · 2026</span>
+  </div>
+
+  <div class="nav-group">
+    <a class="nav-item active"><span class="ico">◐</span> Dashboard</a>
+    <a class="nav-item"><span class="ico">◇</span> Projetos</a>
+    <a class="nav-item"><span class="ico">○</span> Clientes</a>
+    <a class="nav-item"><span class="ico">▥</span> Cronograma</a>
+    <a class="nav-item"><span class="ico">⊞</span> Entregáveis</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Operação</div>
+    <a class="nav-item"><span class="ico">⌗</span> Financeiro</a>
+    <a class="nav-item"><span class="ico">◷</span> Horas</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Estúdio</div>
+    <a class="nav-item"><span class="ico">⚙</span> Configurações</a>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div class="topbar-title">Hub</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm">Buscar</button>
+      <button class="btn btn-primary btn-sm">+ Novo projeto</button>
+    </div>
+  </header>
+
+  <section class="content">
+    <span class="kicker">Dashboard · Segunda, 18 maio 2026</span>
+    <h1 class="page-title">Boa tarde, <em>Danilo</em>.</h1>
+    <p class="page-sub">Sete projetos em curso, dois pedindo atenção e quatro entregáveis aguardando palavra do cliente. Café antes ou depois?</p>
+
+    <div class="metrics">
+      <div class="card">
+        <div class="label">Projetos ativos</div>
+        <div class="value">07</div>
+        <div class="trend up">+2 este mês</div>
+      </div>
+      <div class="card">
+        <div class="label">Em risco</div>
+        <div class="value"><em>02</em></div>
+        <div class="trend down">prazo &lt; 7 dias</div>
+      </div>
+      <div class="card">
+        <div class="label">Aguardando cliente</div>
+        <div class="value">04</div>
+        <div class="trend">entregáveis</div>
+      </div>
+      <div class="card">
+        <div class="label">Faturamento mai</div>
+        <div class="value">38,4k</div>
+        <div class="trend up">+12% vs abril</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">Projetos <em>em curso</em></h2>
+      <a class="btn btn-ghost btn-sm">Ver todos →</a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Projeto</th>
+            <th>Cliente</th>
+            <th>Status</th>
+            <th>Progresso</th>
+            <th class="right">Prazo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Identidade visual</strong></td>
+            <td><span class="avatar">CV</span>Casa Veloso</td>
+            <td><span class="badge badge-progress">Em andamento</span></td>
+            <td><div class="progress"><span class="num">62%</span><div class="progress-bar"><span style="width:62%"></span></div></div></td>
+            <td class="right"><span class="num">28 mai</span></td>
+          </tr>
+          <tr>
+            <td><strong>Vídeo institucional</strong></td>
+            <td><span class="avatar v2">HS</span>Hospital Sírio</td>
+            <td><span class="badge badge-late">Em risco</span></td>
+            <td><div class="progress"><span class="num">41%</span><div class="progress-bar"><span style="width:41%;background:var(--accent)"></span></div></div></td>
+            <td class="right"><span class="num">22 mai</span></td>
+          </tr>
+          <tr>
+            <td><strong>Landing page</strong></td>
+            <td><span class="avatar v3">PA</span>Grupo Pão de Açúcar</td>
+            <td><span class="badge badge-await">Aguardando cliente</span></td>
+            <td><div class="progress"><span class="num">88%</span><div class="progress-bar"><span style="width:88%"></span></div></div></td>
+            <td class="right"><span class="num">06 jun</span></td>
+          </tr>
+          <tr>
+            <td><strong>Sistema interno</strong></td>
+            <td><span class="avatar v4">AE</span>Albert Einstein</td>
+            <td><span class="badge badge-progress">Em andamento</span></td>
+            <td><div class="progress"><span class="num">23%</span><div class="progress-bar"><span style="width:23%"></span></div></div></td>
+            <td class="right"><span class="num">18 jul</span></td>
+          </tr>
+          <tr>
+            <td><strong>Branding completo</strong></td>
+            <td><span class="avatar v5">SA</span>Studio Ar</td>
+            <td><span class="badge badge-draft">Rascunho</span></td>
+            <td><div class="progress"><span class="num">04%</span><div class="progress-bar"><span style="width:4%"></span></div></div></td>
+            <td class="right"><span class="num">12 ago</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">Próximas <em>atividades</em></h2>
+      <a class="btn btn-ghost btn-sm">Abrir Gantt →</a>
+    </div>
+
+    <div class="gantt">
+      <div class="gantt-scale">
+        <div></div>
+        <div class="gantt-scale-bar">
+          <span>18 mai</span><span>20</span><span>22</span><span>24</span><span>26</span><span>28</span><span>30</span><span>01 jun</span>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Aprovação cliente — logo</div>
+          <span class="gantt-meta">Casa Veloso · 3 dias</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-progress" style="left: 0%; width: 25%;">Em revisão</div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Roteiro v2</div>
+          <span class="gantt-meta">Hospital Sírio · 5 dias</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-late" style="left: 12%; width: 38%;">Atrasada</div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Entrega final landing</div>
+          <span class="gantt-meta">Pão de Açúcar · 2 dias</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-await" style="left: 60%; width: 18%;">Aguardando</div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Kickoff branding</div>
+          <span class="gantt-meta">Studio Ar · 1 dia</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-draft" style="left: 75%; width: 10%;">Rascunho</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="direction-tag"><em>Atelier</em><small>direção 3 · expressivo</small></div>
+
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bureau — Hub Estúdio 33</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --background:            hsl(40 30% 97%);
+    --foreground:            hsl(30 12% 12%);
+    --card:                  hsl(40 30% 99%);
+    --card-foreground:       hsl(30 12% 12%);
+    --primary:               hsl(18 50% 35%);
+    --primary-foreground:    hsl(40 30% 97%);
+    --secondary:             hsl(36 15% 90%);
+    --secondary-foreground:  hsl(30 12% 18%);
+    --muted:                 hsl(36 15% 92%);
+    --muted-foreground:      hsl(30 10% 40%);
+    --accent:                hsl(36 22% 85%);
+    --accent-foreground:     hsl(30 12% 18%);
+    --destructive:           hsl(0 65% 45%);
+    --border:                hsl(36 15% 85%);
+    --input:                 hsl(36 15% 88%);
+    --ring:                  hsl(18 50% 45%);
+    --success:               hsl(140 35% 35%);
+    --warning:               hsl(32 75% 50%);
+    --info:                  hsl(210 30% 45%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* SIDEBAR */
+  aside {
+    background: var(--background);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .brand {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    padding: 4px 8px 24px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .brand small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .nav-group { margin-top: 16px; }
+  .nav-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+    padding: 8px 8px 4px;
+    font-weight: 500;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 8px;
+    font-size: 14px;
+    color: var(--foreground);
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--secondary); }
+  .nav-item.active {
+    background: var(--secondary);
+  }
+  .nav-item.active::before {
+    content: ''; position: absolute; left: -16px; top: 8px; bottom: 8px;
+    width: 2px; background: var(--primary);
+  }
+  .nav-item .ico {
+    width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--muted-foreground);
+  }
+  .nav-item.active .ico { color: var(--primary); }
+
+  /* MAIN */
+  main { display: flex; flex-direction: column; min-width: 0; }
+
+  /* TOPBAR */
+  .topbar {
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    background: var(--background);
+  }
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted-foreground);
+  }
+  .breadcrumb strong { color: var(--foreground); font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* CONTENT */
+  .content {
+    padding: 40px 48px 80px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .page-sub {
+    color: var(--muted-foreground);
+    font-size: 15px;
+    margin-bottom: 40px;
+  }
+
+  /* CARDS METRICS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .card .label {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .card .value {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 8px 0 4px;
+    line-height: 1;
+  }
+  .card .trend { font-size: 12px; color: var(--muted-foreground); }
+  .card .trend.up { color: var(--success); }
+  .card .trend.down { color: var(--destructive); }
+
+  /* SECTION HEAD */
+  .section-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px; margin-top: 8px;
+  }
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--secondary); }
+  td .num { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+
+  /* AVATAR */
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: hsl(18 30% 65%);
+    color: var(--background);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-size: 14px; font-weight: 500;
+    margin-right: 12px;
+    vertical-align: middle;
+  }
+  .avatar.v2 { background: hsl(145 25% 45%); }
+  .avatar.v3 { background: hsl(210 25% 50%); }
+  .avatar.v4 { background: hsl(32 50% 55%); }
+  .avatar.v5 { background: hsl(280 20% 55%); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+  }
+  .badge-progress { background: hsla(210, 30%, 45%, 0.15); color: hsl(210 35% 32%); }
+  .badge-late     { background: hsla(32, 75%, 50%, 0.18); color: hsl(28 70% 32%); }
+  .badge-done     { background: hsla(140, 35%, 35%, 0.18); color: hsl(140 35% 22%); }
+  .badge-draft    { background: var(--muted); color: var(--muted-foreground); }
+  .badge-await    { background: hsla(18, 50%, 35%, 0.15); color: hsl(18 50% 32%); }
+
+  /* PROGRESS */
+  .progress {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-width: 140px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 4px; background: var(--muted); border-radius: 2px; overflow: hidden;
+  }
+  .progress-bar > span {
+    display: block; height: 100%; background: var(--primary); border-radius: 2px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 36px; padding: 0 16px;
+    border-radius: 6px; border: 1px solid transparent;
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer; text-decoration: none;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+  .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+  .btn-ghost { background: transparent; color: var(--foreground); }
+  .btn-ghost:hover { background: var(--secondary); }
+  .btn-sm { height: 32px; padding: 0 12px; font-size: 13px; }
+
+  /* GANTT */
+  .gantt {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .gantt-grid {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+  .gantt-grid + .gantt-grid { margin-top: 12px; }
+  .gantt-name {
+    font-size: 14px; color: var(--foreground);
+  }
+  .gantt-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted-foreground);
+    display: block; margin-top: 2px;
+  }
+  .gantt-track {
+    height: 28px; background: var(--muted); border-radius: 4px;
+    position: relative; overflow: hidden;
+  }
+  .gantt-bar {
+    position: absolute; top: 0; bottom: 0;
+    border-radius: 4px;
+    display: flex; align-items: center;
+    padding: 0 10px;
+    font-size: 12px; color: var(--background);
+    font-weight: 500;
+    border-left: 4px solid rgba(0,0,0,0.15);
+  }
+  .bar-progress { background: hsl(210 30% 45%); }
+  .bar-late     { background: hsl(32 75% 50%); }
+  .bar-done     { background: hsl(140 35% 35%); }
+  .bar-draft    { background: hsl(30 10% 55%); }
+  .bar-await    { background: hsl(18 50% 45%); }
+
+  /* SCALE STRIP */
+  .gantt-scale {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 8px; margin-bottom: 16px;
+  }
+  .gantt-scale-bar {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--muted-foreground);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border); padding-bottom: 8px;
+  }
+
+  /* DIRECTION TAG */
+  .direction-tag {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--foreground); color: var(--background);
+    padding: 10px 16px; border-radius: 8px;
+    font-family: 'Fraunces', serif; font-size: 13px;
+    letter-spacing: 0.02em;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .direction-tag small { display: block; opacity: 0.6; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">Hub <small>E33</small></div>
+
+  <div class="nav-group">
+    <a class="nav-item active"><span class="ico">◐</span> Dashboard</a>
+    <a class="nav-item"><span class="ico">◇</span> Projetos</a>
+    <a class="nav-item"><span class="ico">◯</span> Clientes</a>
+    <a class="nav-item"><span class="ico">▥</span> Cronograma</a>
+    <a class="nav-item"><span class="ico">⊞</span> Entregáveis</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Estúdio</div>
+    <a class="nav-item"><span class="ico">∂</span> Financeiro</a>
+    <a class="nav-item"><span class="ico">◷</span> Horas</a>
+    <a class="nav-item"><span class="ico">⚙</span> Configurações</a>
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div class="breadcrumb">
+      <span>Hub</span><span>/</span><strong>Dashboard</strong>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm">⌘K Buscar</button>
+      <button class="btn btn-primary btn-sm">+ Novo projeto</button>
+    </div>
+  </header>
+
+  <section class="content">
+    <h1 class="page-title">Boa tarde, Danilo.</h1>
+    <p class="page-sub">Você tem 3 projetos em andamento e 2 entregáveis aguardando aprovação do cliente.</p>
+
+    <div class="metrics">
+      <div class="card">
+        <div class="label">Projetos ativos</div>
+        <div class="value">07</div>
+        <div class="trend up">+2 este mês</div>
+      </div>
+      <div class="card">
+        <div class="label">Em risco</div>
+        <div class="value">02</div>
+        <div class="trend down">prazo &lt; 7 dias</div>
+      </div>
+      <div class="card">
+        <div class="label">Aguardando cliente</div>
+        <div class="value">04</div>
+        <div class="trend">entregáveis</div>
+      </div>
+      <div class="card">
+        <div class="label">Faturamento (mai/26)</div>
+        <div class="value">R$ 38,4k</div>
+        <div class="trend up">+12% vs abr</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">Projetos ativos</h2>
+      <a class="btn btn-ghost btn-sm">Ver todos →</a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Projeto</th>
+            <th>Cliente</th>
+            <th>Status</th>
+            <th>Progresso</th>
+            <th>Prazo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Identidade visual</strong></td>
+            <td><span class="avatar">CV</span>Casa Veloso</td>
+            <td><span class="badge badge-progress">Em andamento</span></td>
+            <td><div class="progress"><span class="num">62%</span><div class="progress-bar"><span style="width:62%"></span></div></div></td>
+            <td><span class="num">28 mai</span></td>
+          </tr>
+          <tr>
+            <td><strong>Vídeo institucional</strong></td>
+            <td><span class="avatar v2">HS</span>Hospital Sírio</td>
+            <td><span class="badge badge-late">Em risco</span></td>
+            <td><div class="progress"><span class="num">41%</span><div class="progress-bar"><span style="width:41%;background:hsl(32 75% 50%)"></span></div></div></td>
+            <td><span class="num">22 mai</span></td>
+          </tr>
+          <tr>
+            <td><strong>Landing page</strong></td>
+            <td><span class="avatar v3">PA</span>Grupo Pão de Açúcar</td>
+            <td><span class="badge badge-await">Aguardando cliente</span></td>
+            <td><div class="progress"><span class="num">88%</span><div class="progress-bar"><span style="width:88%"></span></div></div></td>
+            <td><span class="num">06 jun</span></td>
+          </tr>
+          <tr>
+            <td><strong>Sistema interno</strong></td>
+            <td><span class="avatar v4">AE</span>Albert Einstein</td>
+            <td><span class="badge badge-progress">Em andamento</span></td>
+            <td><div class="progress"><span class="num">23%</span><div class="progress-bar"><span style="width:23%"></span></div></div></td>
+            <td><span class="num">18 jul</span></td>
+          </tr>
+          <tr>
+            <td><strong>Branding completo</strong></td>
+            <td><span class="avatar v5">SA</span>Studio Ar</td>
+            <td><span class="badge badge-draft">Rascunho</span></td>
+            <td><div class="progress"><span class="num">04%</span><div class="progress-bar"><span style="width:4%"></span></div></div></td>
+            <td><span class="num">12 ago</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-head">
+      <h2 class="section-title">Próximas atividades</h2>
+      <a class="btn btn-ghost btn-sm">Abrir Gantt →</a>
+    </div>
+
+    <div class="gantt">
+      <div class="gantt-scale">
+        <div></div>
+        <div class="gantt-scale-bar">
+          <span>18 mai</span><span>20</span><span>22</span><span>24</span><span>26</span><span>28</span><span>30</span><span>01 jun</span>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Aprovação cliente — logo</div>
+          <span class="gantt-meta">Casa Veloso · 3 dias</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-progress" style="left: 0%; width: 25%;">Em revisão</div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Roteiro v2</div>
+          <span class="gantt-meta">Hospital Sírio · 5 dias</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-late" style="left: 12%; width: 38%;">Atrasada</div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Entrega final landing</div>
+          <span class="gantt-meta">Pão de Açúcar · 2 dias</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-await" style="left: 60%; width: 18%;">Aguardando</div>
+        </div>
+      </div>
+
+      <div class="gantt-grid">
+        <div>
+          <div class="gantt-name">Kickoff branding</div>
+          <span class="gantt-meta">Studio Ar · 1 dia</span>
+        </div>
+        <div class="gantt-track">
+          <div class="gantt-bar bar-draft" style="left: 75%; width: 10%;">Rascunho</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="direction-tag">Bureau<small>direção 1 · editorial</small></div>
+
+</body>
+</html>
