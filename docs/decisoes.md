@@ -14,6 +14,42 @@ Formato sugerido:
 
 ---
 
+## 2026-05-18 — Fase 1 implementada: núcleo operacional
+
+**Contexto:** PRD da Fase 1 recebido. 7 etapas executadas em sequência, cada uma com seu commit.
+
+**Decisões técnicas tomadas durante a implementação:**
+
+- **Layout via route group `(app)/`** com `AppShell` server component, em vez de `(auth)/` + `(admin)/` separados — só uma área autenticada por enquanto, simplificar agora vale a pena. Reorganizar quando o portal do cliente entrar (Fase 3).
+- **Server actions, sem API routes.** Conforme PRD. `revalidatePath` após cada mutation.
+- **react-hook-form + zodResolver** para forms. `Controller` no Select (shadcn select usa base-ui, controlado).
+- **shadcn novo (base-ui) não tem `Button asChild`** — workaround: usar `<Link className={buttonVariants(...)}>` direto. Documentado pra reutilizar.
+- **Sonner sem `next-themes`** — toaster com `theme="dark"` fixo. Hub é dark-only por enquanto.
+- **Regra "uma sessão ativa por vez" implementada na server action**, não no banco. `startSession` faz UPDATE de qualquer sessão aberta antes de inserir a nova. Mais flexível que constraint Postgres, suficiente pra single-user.
+- **Stats do dashboard calculadas em JS**, não em Postgres. Range de datas (semana + mês) é buscado uma vez e processado in-memory. Quando crescer, migrar pra função SQL.
+- **Server actions só exportam funções async.** Aprendi na primeira build: re-exportar tipos de um arquivo `"use server"` quebra o build. Tipos vivem em `src/types/database.ts` e são importados diretamente.
+- **Schema do projeto: datas e valor como string opcional** (vazio = null) em vez de `preprocess` zod → conflito com tipo input/output do RHF. Normalização vira responsabilidade da action.
+- **Middleware roda na raiz `src/middleware.ts`.** Next 16 emite warning sobre renomear para "proxy" — ignorado por enquanto, ainda funciona; renomeação só por consistência futura.
+
+**Validação:** `npx tsc --noEmit` sem erros. `npm run build` gera todas as 11 rotas. Smoke test com curl: `/` redireciona (307), `/login` 200, rotas privadas redirecionam para `/login` quando sem auth.
+
+**Pendente para o Danilo (single-user manual):**
+- Criar projeto Supabase
+- Aplicar migration
+- Criar usuário admin
+- Preencher `.env.local`
+
+**Arquivos principais:**
+- `src/middleware.ts` + `src/lib/supabase/{server,browser,middleware}.ts` — auth
+- `src/app/(app)/` — todas as telas autenticadas
+- `src/lib/actions/` — server actions (auth, clients, projects, sessions)
+- `src/lib/schemas/` — zod schemas
+- `src/lib/queries/stats.ts` — dashboard stats
+- `src/lib/format.ts` — formatação PT-BR (duração, datas, moeda)
+- `supabase/migrations/20260518000001_initial_schema.sql` — schema + RLS
+
+---
+
 ## 2026-05-18 — Setup técnico: Next 16 + Tailwind 4 + shadcn/ui na raiz do projeto
 
 **Contexto:** identidade visual aprovada, hora de criar o app Next.js e aplicar os tokens. A pasta já continha briefing, docs e mockups — não dava pra rodar `create-next-app` direto na pasta vazia.

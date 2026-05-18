@@ -148,5 +148,3 @@ export async function listActiveClients(): Promise<
   return data ?? [];
 }
 
-/* re-export tipos */
-export type { Project, ProjectStatus };

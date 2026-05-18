@@ -6,7 +6,7 @@
 - **Nome:** Hub Estúdio 33
 - **Tipo:** Web app interno (uso solo + IA, com acesso restrito de clientes externos)
 - **Cliente:** Estúdio 33 (uso próprio do Danilo)
-- **Status atual:** setup técnico concluído (Next 16 + Tailwind 4 + shadcn + Supabase SDKs + tokens E33 aplicados + showcase rodando) — pronto para o PRD da Fase 1
+- **Status atual:** Fase 1 implementada (auth + CRUD clientes + CRUD projetos + timer + dashboard) — falta só conectar ao Supabase real (criar projeto + aplicar migration + criar usuário admin) para usar.
 
 ## Stack
 Next.js 14+ (App Router) · React 18 · TypeScript strict · Tailwind · shadcn/ui · Supabase (auth + Postgres + storage + RLS + edge functions) · Vercel · Resend · Anthropic API (Claude Sonnet 4 default)
@@ -44,16 +44,22 @@ Cada fase é deployável e usável de forma independente. Não pular fase.
 - [x] Estrutura de pastas criada
 - [x] Identidade visual definida — Hub · E33 Dark ([docs/mockups/hub.html](docs/mockups/hub.html) + [docs/identidade-visual.md](docs/identidade-visual.md))
 - [x] Setup técnico — Next 16 + Tailwind 4 + shadcn/ui + Supabase SDKs + tokens E33 aplicados ([docs/arquitetura.md](docs/arquitetura.md))
-- [x] Showcase visual da identidade rodando em `/`
-- [ ] PRD da Fase 1 (Núcleo operacional) — gerar no Briefing Studio
-- [ ] Fase 1 iniciada
+- [x] PRD da Fase 1 ([prds/fase-1-nucleo.md](prds/fase-1-nucleo.md))
+- [x] **Fase 1 implementada** — auth, CRUD clientes, CRUD projetos, timer de horas, dashboard
 
 ## Como rodar localmente
-1. `npm install` (1× só, já feito durante o setup)
-2. `cp .env.local.example .env.local` — preencher as chaves quando tivermos Supabase
-3. `npm run dev` → abre em http://localhost:3000
-
-Se a porta 3000 estiver ocupada (outro app rodando), o Next escolhe automaticamente 3001/3002 e mostra a URL no terminal.
+1. `npm install` (já feito)
+2. `cp .env.local.example .env.local` e preencher com chaves do seu projeto Supabase (ver [supabase/README.md](supabase/README.md))
+3. Aplicar a migration `supabase/migrations/20260518000001_initial_schema.sql` no dashboard do Supabase
+4. Criar um usuário admin no painel Auth do Supabase (e-mail + senha)
+5. `npm run dev` → abre em http://localhost:3000 (ou 3030 se a 3000 estiver ocupada)
+6. Login em `/login` com o usuário criado
 
 ## Próximo passo
-Gerar o **PRD da Fase 1 — Núcleo operacional** (auth admin + cliente, CRUD de clientes, CRUD de projetos, dashboard mínimo). Esse PRD será gerado no **Briefing Studio** (fora do Cursor) a partir do `briefing.md`. Salvar resultado em `prds/fase-1-nucleo.md` e voltar aqui para o próximo prompt.
+Conectar o Supabase real:
+1. Criar projeto em https://supabase.com (região São Paulo)
+2. Aplicar a migration
+3. Adicionar `.env.local` com as chaves
+4. Criar o usuário admin
+
+Quando estiver no ar, validar todo o fluxo (criar cliente → criar projeto → iniciar timer → encerrar com descrição → ver dashboard).
