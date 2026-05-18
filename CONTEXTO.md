@@ -6,7 +6,7 @@
 - **Nome:** Hub Estúdio 33
 - **Tipo:** Web app interno (uso solo + IA, com acesso restrito de clientes externos)
 - **Cliente:** Estúdio 33 (uso próprio do Danilo)
-- **Status atual:** setup inicial — briefing aprovado, estrutura criada, sem código ainda
+- **Status atual:** identidade visual aprovada (Hub · E33 Dark, base oficial brand E33) — pronto para PRD da Fase 1 e setup técnico
 
 ## Stack
 Next.js 14+ (App Router) · React 18 · TypeScript strict · Tailwind · shadcn/ui · Supabase (auth + Postgres + storage + RLS + edge functions) · Vercel · Resend · Anthropic API (Claude Sonnet 4 default)
@@ -42,9 +42,10 @@ Cada fase é deployável e usável de forma independente. Não pular fase.
 ## Status
 - [x] Briefing aprovado
 - [x] Estrutura de pastas criada
-- [ ] Identidade visual definida
-- [ ] Setup técnico (Next + Supabase + Vercel)
+- [x] Identidade visual definida — Hub · E33 Dark ([docs/mockups/hub.html](docs/mockups/hub.html) + [docs/identidade-visual.md](docs/identidade-visual.md))
+- [ ] PRD da Fase 1 (Núcleo operacional)
+- [ ] Setup técnico (Next + Supabase + Vercel + tokens visuais)
 - [ ] Fase 1 iniciada
 
 ## Próximo passo
-Definir identidade visual (Prompt 2).
+Gerar o PRD da Fase 1 — Núcleo operacional (auth admin + cliente, CRUD de clientes, CRUD de projetos, dashboard mínimo). Esse PRD vira a fonte do que precisa ser construído antes do setup técnico começar.
