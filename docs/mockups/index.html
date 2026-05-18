@@ -9,7 +9,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background: #f4f0e8;
+    background: #F2F0EB;
     color: #1c1814;
     padding: 48px 32px;
     min-height: 100vh;
@@ -28,6 +28,42 @@
     color: #6b5e54;
     margin-bottom: 48px;
     font-size: 15px;
+    max-width: 720px; margin-left: auto; margin-right: auto;
+  }
+  .featured {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+  }
+  .featured .opt {
+    background: linear-gradient(135deg, #FFF 0%, #FAF8F3 100%);
+    border: 2px solid #1A1A1A;
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+  .featured .opt::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg,#FFBD00 0%,#FF5400 20%,#FF0054 40%,#C52AAF 60%,#5C28DB 80%,#2D79E6 100%);
+  }
+  .featured .opt-num {
+    color: #1A1A1A; font-weight: 700;
+  }
+  .featured .opt-name {
+    font-size: 40px;
+    background: linear-gradient(90deg, #FF5400, #FF0054, #C52AAF, #5C28DB);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .featured .opt-desc { font-size: 15px; color: #2a2520; }
+  .featured-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    background: #1A1A1A; color: #FFBD00;
+    padding: 4px 10px; border-radius: 999px;
+    margin-bottom: 12px;
   }
   .grid {
     display: grid;
@@ -35,6 +71,16 @@
     gap: 24px;
     max-width: 1200px;
     margin: 0 auto;
+  }
+  .grid .opt { opacity: 0.7; }
+  .grid .opt:hover { opacity: 1; }
+  h2.section-label {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: #6b5e54;
+    margin-bottom: 20px;
   }
   .opt {
     background: white;
@@ -87,8 +133,29 @@
 </style>
 </head>
 <body>
-  <h1>Hub Estúdio 33 — três direções</h1>
-  <p class="sub">Abra cada uma em uma aba. Mesmo conteúdo, três personalidades.</p>
+  <h1>Hub Estúdio 33 — direções visuais</h1>
+  <p class="sub">A versão "Hub · E33 Brand" funde a densidade técnica que você gostou (Hangar) com a identidade visual oficial do Estúdio 33 (gradiente da marca, Geist, paleta brand). As outras três continuam disponíveis pra referência.</p>
+
+  <div class="featured">
+    <a class="opt" href="hub.html" target="_blank">
+      <span class="featured-badge">★ Direção definitiva</span>
+      <span class="opt-num">Hub · E33 Brand</span>
+      <span class="opt-name">Estúdio 33</span>
+      <span class="opt-desc">Densidade técnica + atalhos (Hangar) + identidade visual oficial: gradiente brand, paleta colorida, Geist + Geist Mono, fundo bege papel, cards arredondados estilo pill, status badges das 16 etapas do E33_OS.</span>
+      <div class="opt-swatches">
+        <span class="sw" style="background:#FFBD00"></span>
+        <span class="sw" style="background:#FF5400"></span>
+        <span class="sw" style="background:#FF0054"></span>
+        <span class="sw" style="background:#C52AAF"></span>
+        <span class="sw" style="background:#5C28DB"></span>
+        <span class="sw" style="background:#2D79E6"></span>
+        <span class="sw" style="background:#F2F0EB"></span>
+      </div>
+      <span class="opt-cta">Abrir →</span>
+    </a>
+  </div>
+
+  <h2 class="section-label">Direções iniciais — para comparação</h2>
 
   <div class="grid">
     <a class="opt" href="bureau.html" target="_blank">
