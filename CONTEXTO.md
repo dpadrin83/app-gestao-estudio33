@@ -6,7 +6,7 @@
 - **Nome:** Hub Estúdio 33
 - **Tipo:** Web app interno (uso solo + IA, com acesso restrito de clientes externos)
 - **Cliente:** Estúdio 33 (uso próprio do Danilo)
-- **Status atual:** identidade visual aprovada (Hub · E33 Dark, base oficial brand E33) — pronto para PRD da Fase 1 e setup técnico
+- **Status atual:** setup técnico concluído (Next 16 + Tailwind 4 + shadcn + Supabase SDKs + tokens E33 aplicados + showcase rodando) — pronto para o PRD da Fase 1
 
 ## Stack
 Next.js 14+ (App Router) · React 18 · TypeScript strict · Tailwind · shadcn/ui · Supabase (auth + Postgres + storage + RLS + edge functions) · Vercel · Resend · Anthropic API (Claude Sonnet 4 default)
@@ -43,9 +43,17 @@ Cada fase é deployável e usável de forma independente. Não pular fase.
 - [x] Briefing aprovado
 - [x] Estrutura de pastas criada
 - [x] Identidade visual definida — Hub · E33 Dark ([docs/mockups/hub.html](docs/mockups/hub.html) + [docs/identidade-visual.md](docs/identidade-visual.md))
-- [ ] PRD da Fase 1 (Núcleo operacional)
-- [ ] Setup técnico (Next + Supabase + Vercel + tokens visuais)
+- [x] Setup técnico — Next 16 + Tailwind 4 + shadcn/ui + Supabase SDKs + tokens E33 aplicados ([docs/arquitetura.md](docs/arquitetura.md))
+- [x] Showcase visual da identidade rodando em `/`
+- [ ] PRD da Fase 1 (Núcleo operacional) — gerar no Briefing Studio
 - [ ] Fase 1 iniciada
 
+## Como rodar localmente
+1. `npm install` (1× só, já feito durante o setup)
+2. `cp .env.local.example .env.local` — preencher as chaves quando tivermos Supabase
+3. `npm run dev` → abre em http://localhost:3000
+
+Se a porta 3000 estiver ocupada (outro app rodando), o Next escolhe automaticamente 3001/3002 e mostra a URL no terminal.
+
 ## Próximo passo
-Gerar o PRD da Fase 1 — Núcleo operacional (auth admin + cliente, CRUD de clientes, CRUD de projetos, dashboard mínimo). Esse PRD vira a fonte do que precisa ser construído antes do setup técnico começar.
+Gerar o **PRD da Fase 1 — Núcleo operacional** (auth admin + cliente, CRUD de clientes, CRUD de projetos, dashboard mínimo). Esse PRD será gerado no **Briefing Studio** (fora do Cursor) a partir do `briefing.md`. Salvar resultado em `prds/fase-1-nucleo.md` e voltar aqui para o próximo prompt.

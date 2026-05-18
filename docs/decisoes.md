@@ -14,6 +14,44 @@ Formato sugerido:
 
 ---
 
+## 2026-05-18 — Setup técnico: Next 16 + Tailwind 4 + shadcn/ui na raiz do projeto
+
+**Contexto:** identidade visual aprovada, hora de criar o app Next.js e aplicar os tokens. A pasta já continha briefing, docs e mockups — não dava pra rodar `create-next-app` direto na pasta vazia.
+
+**Decisão:**
+- **Next 16.2 + Tailwind 4 + React 19** (vieram como latest do `create-next-app`). Configuração padrão moderna: App Router, TypeScript strict, src/ directory, alias `@/*`, ESLint, npm.
+- **Código na raiz do projeto**, ao lado dos docs (`docs/`, `prds/`, `briefing.md`). Sem subpasta de app separada — uma raiz única para tudo.
+- **Tailwind 4** sem `tailwind.config.ts` — toda configuração via `@theme inline` no `globals.css`. Tokens shadcn (`bg-background`, etc.) e tokens brand (`bg-brand-pink`, etc.) declarados juntos em um só lugar.
+- **shadcn/ui** inicializado com base `neutral`, depois sobrescrito com tokens E33 reais. Componentes instalados: button, card, badge, separator, table.
+- **Fontes via `next/font/google`** com `display: swap`: Geist (UI), Geist Mono (dados), Instrument Serif (display ocasional).
+- **`html.dark` forçado** no layout — Hub é dark-only por enquanto. `next-themes` não instalado (pulado, como permitido pelo briefing).
+- **Supabase SDKs instalados mas não usados ainda** (`@supabase/supabase-js` + `@supabase/ssr`) — cliente real será criado no início da Fase 1 em `src/lib/supabase/`.
+- **Página `/` é um showcase visual** da identidade — será substituída na Fase 1.
+
+**Por quê:**
+- Raiz única evita confusão de "qual pasta abrir no Cursor". Docs, código e mockups convivem no mesmo lugar versionado pelo git.
+- Tailwind 4 + `@theme inline` é o caminho moderno — config em CSS é mais simples, menos arquivos para manter sincronizados.
+- Forçar dark agora simplifica setup. Toggle dark/claro pode entrar depois se houver demanda real.
+- Showcase como home garante que qualquer divergência da identidade aparece imediatamente — funciona como "smoke test visual" do design system.
+
+**Alternativas descartadas:**
+- **Subpasta `app/` ou `web/`** para o Next — descartado por complicar imports de docs e dobrar a estrutura.
+- **Pages Router** — não dá pra usar com shadcn moderno + Server Components.
+- **`tailwind.config.ts` separado** — Tailwind 4 desencoraja, prefere CSS-first.
+- **`next-themes` agora** — adia até existir necessidade real de toggle.
+- **`tailwind.config` com base color slate/zinc** — escolhi `neutral` no shadcn init e sobrescrevi tudo, pra não ter cor base "competindo" com a brand.
+
+**Resultado validado:** TypeScript passou sem erros (`tsc --noEmit`), servidor dev compilou em <2s, `/` responde HTTP 200 com tokens aplicados (brand-stripe, gradient text, badges coloridos, mini Gantt).
+
+**Arquivos:**
+- [src/app/globals.css](../src/app/globals.css) — tokens
+- [src/app/layout.tsx](../src/app/layout.tsx) — fontes + dark default
+- [src/app/page.tsx](../src/app/page.tsx) — showcase
+- [src/components/logo-e33.tsx](../src/components/logo-e33.tsx) — logo SVG inline
+- [docs/arquitetura.md](arquitetura.md) — referência viva da estrutura
+
+---
+
 ## 2026-05-18 — Identidade visual: Hub · E33 Dark (fusão Hangar + brand oficial)
 
 **Contexto:** apresentei 3 direções visuais genéricas (Bureau editorial, Hangar técnico-escuro, Atelier expressivo). O Danilo gostou da personalidade da Hangar mas trouxe os arquivos do design system oficial do Estúdio 33 (DS v1 + v2 Brand) com paleta, gradiente e Geist já estabelecidos. Pediu fusão. Primeira versão saiu clara — pediu dark e mais inspiração das duas refs (Aura Learning, Aurora Garden Control).
