@@ -1,0 +1,14 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Build / Next.js
+.next/
+dist/
+build/
+
+# Sistema
+.DS_Store
