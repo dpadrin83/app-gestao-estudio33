@@ -25,10 +25,13 @@ APP_GESTAO-ESTUDIO33/
 
 ## Status
 
-App funcional (Fases 1–8). Pronto para deploy — ver **[docs/deploy.md](docs/deploy.md)**.
+App funcional (Fases 1–8). Pronto para deploy.
 
 ```bash
 npm install
 cp .env.local.example .env.local   # preencher Supabase + Resend
 npm run dev                        # http://127.0.0.1:3333
+npm run predeploy                  # antes de publicar na Vercel
 ```
+
+**Publicar:** [docs/PRE-DEPLOY.md](docs/PRE-DEPLOY.md) (checklist único) · detalhes em [docs/deploy.md](docs/deploy.md)
