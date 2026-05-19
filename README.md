@@ -25,4 +25,10 @@ APP_GESTAO-ESTUDIO33/
 
 ## Status
 
-Setup inicial. Sem código ainda — o app virá nos próximos prompts, fase por fase.
+App funcional (Fases 1–8). Pronto para deploy — ver **[docs/deploy.md](docs/deploy.md)**.
+
+```bash
+npm install
+cp .env.local.example .env.local   # preencher Supabase + Resend
+npm run dev                        # http://127.0.0.1:3333
+```

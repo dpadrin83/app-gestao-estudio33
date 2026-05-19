@@ -1,7 +1,11 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { ClientSchema, type ClientFormValues } from "@/lib/schemas/client";
+import {
+  ClientSchema,
+  normalizeClientForm,
+  type ClientFormValues,
+} from "@/lib/schemas/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Client, ClientStatus } from "@/types/database";
@@ -10,10 +14,21 @@ export type ActionResult<T = unknown> =
   | { ok: true; data?: T }
   | { ok: false; error: string };
 
+export type ClientListFilter =
+  | "operational"
+  | "prospect"
+  | "active"
+  | "paused"
+  | "closed"
+  | "inactive"
+  | "all";
+
+const OPERATIONAL_STATUSES: ClientStatus[] = ["prospect", "active", "paused"];
+
 /* ─── list ─── */
 
 export async function listClients(opts?: {
-  status?: ClientStatus | "all";
+  status?: ClientListFilter;
   q?: string;
 }): Promise<Client[]> {
   const supabase = await createSupabaseServerClient();
@@ -22,11 +37,25 @@ export async function listClients(opts?: {
     .select("*")
     .order("name", { ascending: true });
 
-  if (opts?.status && opts.status !== "all") {
-    query = query.eq("status", opts.status);
+  const filter = opts?.status ?? "operational";
+  if (filter === "operational") {
+    query = query.in("status", OPERATIONAL_STATUSES);
+  } else if (filter !== "all") {
+    query = query.eq("status", filter);
   }
+
   if (opts?.q && opts.q.trim()) {
-    query = query.ilike("name", `%${opts.q.trim()}%`);
+    const term = `%${opts.q.trim()}%`;
+    query = query.or(
+      [
+        `name.ilike.${term}`,
+        `legal_name.ilike.${term}`,
+        `contact_name.ilike.${term}`,
+        `email.ilike.${term}`,
+        `cnpj.ilike.${term}`,
+        `segment.ilike.${term}`,
+      ].join(","),
+    );
   }
 
   const { data, error } = await query;
@@ -48,20 +77,10 @@ export async function getClient(id: string): Promise<Client | null> {
     console.error("[getClient]", error);
     return null;
   }
-  return data;
+  return data as Client;
 }
 
 /* ─── create / update ─── */
-
-function normalize(values: ClientFormValues) {
-  return {
-    name: values.name.trim(),
-    email: values.email?.trim() || null,
-    phone: values.phone?.trim() || null,
-    notes: values.notes?.trim() || null,
-    status: values.status,
-  };
-}
 
 export async function createClient(
   values: ClientFormValues,
@@ -74,7 +93,7 @@ export async function createClient(
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("clients")
-    .insert(normalize(parsed.data))
+    .insert(normalizeClientForm(parsed.data))
     .select("id")
     .single();
 
@@ -85,6 +104,7 @@ export async function createClient(
 
   revalidatePath("/clients");
   revalidatePath("/projects");
+  revalidatePath("/dashboard");
   return { ok: true, data: { id: data.id } };
 }
 
@@ -100,7 +120,7 @@ export async function updateClient(
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from("clients")
-    .update(normalize(parsed.data))
+    .update(normalizeClientForm(parsed.data))
     .eq("id", id);
 
   if (error) {
@@ -111,10 +131,11 @@ export async function updateClient(
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
   revalidatePath("/projects");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
-/* ─── soft delete (toggle status) ─── */
+/* ─── arquivar / reativar ─── */
 
 export async function setClientStatus(
   id: string,
@@ -133,10 +154,9 @@ export async function setClientStatus(
 
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
+  revalidatePath("/projects");
   return { ok: true };
 }
-
-/* ─── helper para redirect após criação ─── */
 
 export async function createClientAndRedirect(values: ClientFormValues) {
   const result = await createClient(values);

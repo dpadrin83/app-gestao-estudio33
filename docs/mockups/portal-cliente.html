@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hub E33 — Modelo: portal do cliente (dashboard)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --font: 'Geist', system-ui, sans-serif;
+      --mono: 'Geist Mono', monospace;
+      --bg: #0A0B10;
+      --border: rgba(255,255,255,0.08);
+      --text: #F0F0F2;
+      --muted: #8B8E96;
+      --b-orange: #FF5400;
+      --b-purple: #5C28DB;
+      --b-yellow: #FFBD00;
+      --success: #22C55E;
+      --danger: #EF4444;
+      --grad: linear-gradient(90deg,#FFBD00,#FF5400,#FF0054,#C52AAF,#5C28DB,#2D79E6);
+    }
+    body {
+      font-family: var(--font);
+      background: #050508;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 2rem 1.5rem 4rem;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 600px 400px at 20% 0%, rgba(92,40,219,0.12), transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; }
+    .stripe { height: 3px; background: var(--grad); border-radius: 2px; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .lead { color: var(--muted); max-width: 42rem; margin-bottom: 2rem; }
+    .ref-box {
+      border: 1px solid rgba(45,121,230,0.35);
+      background: rgba(45,121,230,0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 2.5rem;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .ref-box strong { color: var(--text); }
+    .screen-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--b-orange);
+      margin-bottom: 10px;
+    }
+    .screen-block { margin-bottom: 3rem; }
+    .browser {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+    }
+    .browser-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.35);
+    }
+    .browser-bar span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.12); }
+    .browser-url {
+      flex: 1;
+      margin-left: 8px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .portal-stripe { height: 3px; background: var(--grad); }
+    .portal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,11,16,0.95);
+      gap: 16px;
+    }
+    .portal-header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-width: 0;
+      flex: 1;
+    }
+    .e33-mark {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 20px;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .e33-mark .mark {
+      width: 28px; height: 28px; border-radius: 6px;
+      background: var(--grad);
+    }
+    .e33-mark .sub {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .client-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .client-logo {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--b-orange);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .client-logo img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+    .client-brand h2 { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .portal-main { padding: 28px 24px 40px; max-width: 1100px; margin: 0 auto; }
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(92,40,219,0.08));
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .hero .client-brand h2 { font-size: 1.5rem; }
+    .hero .client-brand .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--b-orange);
+      margin-top: 4px;
+    }
+    .hero .client-brand .segment { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .hero p { color: var(--muted); font-size: 13px; max-width: 280px; text-align: right; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 720px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+    }
+    .kpi.warn { border-color: rgba(255,189,0,0.4); background: rgba(255,189,0,0.06); }
+    .kpi .lbl {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .kpi .val { font-family: var(--mono); font-size: 1.75rem; font-weight: 700; }
+    .alert-banner {
+      border: 1px solid rgba(255,189,0,0.4);
+      background: rgba(255,189,0,0.08);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      font-size: 13px;
+    }
+    .section-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+    .section-sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 640px) { .tiles { grid-template-columns: 1fr; } }
+    .tile {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.02);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+    .tile:hover {
+      border-color: rgba(92,40,219,0.5);
+      box-shadow: 0 8px 32px rgba(92,40,219,0.12);
+    }
+    .tile-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(255,84,0,0.1), transparent 60%, rgba(92,40,219,0.06));
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .tile-head h3 { font-size: 15px; font-weight: 600; }
+    .tile-head .phase { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .tile-head .phase strong { color: var(--text); text-transform: capitalize; }
+    .progress-ring {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,84,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--b-orange);
+      flex-shrink: 0;
+    }
+    .tile-body { padding: 16px 18px; }
+    .phase-bar {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+    .phase-bar span {
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.08);
+    }
+    .phase-bar span.done { background: var(--success); }
+    .phase-bar span.now { background: var(--b-orange); }
+    .tile-meta { font-size: 11px; color: var(--muted); display: grid; gap: 6px; margin-bottom: 12px; }
+    .tile-next {
+      font-size: 11px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .tile-link { font-size: 11px; font-weight: 600; color: var(--b-orange); }
+    .user-pill {
+      font-size: 11px;
+      color: var(--muted);
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .detail-layout { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+    @media (max-width: 800px) { .detail-layout { grid-template-columns: 1fr; } }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(255,255,255,0.02);
+    }
+    .panel h3 { font-size: 14px; margin-bottom: 12px; }
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .timeline-item:last-child { border: none; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+    .dot.done { background: var(--success); }
+    .dot.now { background: var(--b-orange); }
+    .dot.todo { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stripe"></div>
+    <h1>Portal do cliente — dashboard visual</h1>
+    <p class="lead">
+      O cliente vê a <strong>marca dele</strong> (logo ou iniciais), KPIs e um grid de projetos em produção.
+      Sem macro-áreas, sub-etapas nem prompts. Admin cadastra <code>logo_url</code> no cliente.
+    </p>
+
+    <div class="ref-box">
+      <strong>Implementado em</strong> <code>/portal</code> ·
+      <strong>Admin</strong> Clientes → campo Logo (URL) ·
+      Migration <code>20260520140000_client_logo_url.sql</code>
+    </div>
+
+    <!-- TELA 1: Dashboard -->
+    <section class="screen-block">
+      <p class="screen-label">Tela 1 — Dashboard (/portal)</p>
+      <div class="browser">
+        <div class="browser-bar">
+          <span></span><span></span><span></span>
+          <div class="browser-url">app.estudio33.com.br/portal</div>
+        </div>
+        <div class="portal-stripe"></div>
+        <header class="portal-header">
+          <div class="portal-header-left">
+            <div class="e33-mark">
+              <div class="mark"></div>
+              <span class="sub">Portal</span>
+            </div>
+            <div class="client-brand">
+              <div class="client-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png" alt="" />
+              </div>
+              <h2>Panorama Mídia</h2>
+            </div>
+          </div>
+          <span class="user-pill">maria@panorama.com</span>
+        </header>
+        <main class="portal-main">
+          <div class="hero">
+            <div class="client-brand">
+              <div class="client-logo" style="width:64px;height:64px;border-radius:14px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png" alt="" />
+              </div>
+              <div>
+                <h2>Panorama Mídia</h2>
+                <p class="segment">Mídia &amp; entretenimento</p>
+                <p class="tag">Projetos com o Estúdio 33</p>
+              </div>
+            </div>
+            <p>Visão geral dos projetos em andamento. Clique em um card para ver cronograma, prazos e entregáveis.</p>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi">
+              <div class="lbl">Em produção</div>
+              <div class="val">2</div>
+            </div>
+            <div class="kpi">
+              <div class="lbl">Progresso médio</div>
+              <div class="val">58%</div>
+            </div>
+            <div class="kpi warn">
+              <div class="lbl">Aguardando você</div>
+              <div class="val">1</div>
+            </div>
+            <div class="kpi">
+              <div class="lbl">Pausados</div>
+              <div class="val">0</div>
+            </div>
+          </div>
+
+          <div class="alert-banner">
+            <strong>1 entregável aguarda sua aprovação.</strong> Abra o projeto e vá em Entregáveis.
+          </div>
+
+          <h2 class="section-title">Projetos em produção</h2>
+          <p class="section-sub">Tudo que está ativo agora na sua organização.</p>
+
+          <div class="tiles">
+            <article class="tile">
+              <div class="tile-head">
+                <div>
+                  <h3>Campanha Verão 2026</h3>
+                  <p class="phase">Fase atual: <strong>produção</strong></p>
+                </div>
+                <div class="progress-ring">62%</div>
+              </div>
+              <div class="tile-body">
+                <div class="phase-bar">
+                  <span class="done"></span><span class="done"></span><span class="now"></span><span></span><span></span>
+                </div>
+                <div class="tile-meta">
+                  <div>⏱ 18 dias em produção</div>
+                  <div>📅 Previsão · 12 jun 2026</div>
+                </div>
+                <div class="tile-next">Próximo: <strong>Entrega do vídeo hero</strong></div>
+                <span class="tile-link">Ver detalhes →</span>
+              </div>
+            </article>
+
+            <article class="tile">
+              <div class="tile-head">
+                <div>
+                  <h3>Identidade Podcast</h3>
+                  <p class="phase">Fase atual: <strong>revisão</strong></p>
+                </div>
+                <div class="progress-ring">45%</div>
+              </div>
+              <div class="tile-body">
+                <div class="phase-bar">
+                  <span class="done"></span><span class="now"></span><span></span><span></span><span></span>
+                </div>
+                <div class="tile-meta">
+                  <div>⏱ 9 dias em produção</div>
+                  <div>📅 Previsão · 28 mai 2026</div>
+                </div>
+                <div class="tile-next">Próximo: <strong>Aprovação da capa</strong></div>
+                <span class="tile-link">Ver detalhes →</span>
+              </div>
+            </article>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- TELA 2: Detalhe -->
+    <section class="screen-block">
+      <p class="screen-label">Tela 2 — Projeto (/portal/projects/[id])</p>
+      <div class="browser">
+        <div class="browser-bar">
+          <span></span><span></span><span></span>
+          <div class="browser-url">…/portal/projects/campanha-verao</div>
+        </div>
+        <div class="portal-stripe"></div>
+        <header class="portal-header">
+          <div class="portal-header-left">
+            <div class="e33-mark"><div class="mark"></div><span class="sub">Portal</span></div>
+            <div class="client-brand">
+              <div class="client-logo">PM</div>
+              <h2>Panorama Mídia</h2>
+            </div>
+          </div>
+          <a href="#" style="font-size:12px;color:var(--muted);">← Voltar ao painel</a>
+        </header>
+        <main class="portal-main">
+          <h2 style="font-size:1.35rem;margin-bottom:4px;">Campanha Verão 2026</h2>
+          <p style="color:var(--muted);margin-bottom:20px;">Cronograma compartilhado · entregáveis para aprovar</p>
+          <div class="detail-layout">
+            <div class="panel">
+              <h3>Cronograma</h3>
+              <div class="timeline-item">
+                <span class="dot done"></span>
+                <div><strong>Briefing aprovado</strong><br><span style="color:var(--muted)">Concluído · 3 abr</span></div>
+              </div>
+              <div class="timeline-item">
+                <span class="dot now"></span>
+                <div><strong>Produção do vídeo hero</strong><br><span style="color:var(--b-orange)">Em andamento</span></div>
+              </div>
+              <div class="timeline-item">
+                <span class="dot todo"></span>
+                <div><strong>Entrega final</strong><br><span style="color:var(--muted)">Previsto · 12 jun</span></div>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>Entregáveis</h3>
+              <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Só o que foi enviado ao cliente.</p>
+              <div style="border:1px solid rgba(255,189,0,0.35);border-radius:8px;padding:12px;font-size:12px;">
+                <strong style="color:var(--b-yellow);">Aguardando aprovação</strong><br>
+                Roteiro v2 — PDF
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

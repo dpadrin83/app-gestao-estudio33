@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/select";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
-import { projectStatusLabels } from "@/lib/format";
+import {
+  projectStatusLabels,
+  paymentStatusLabels,
+  serviceLineLabels,
+} from "@/lib/format";
 import type { Project } from "@/types/database";
 
 type ClientOption = { id: string; name: string };
@@ -45,20 +49,26 @@ export function ProjectForm({
           client_id: initial.client_id,
           name: initial.name,
           description: initial.description ?? "",
+          briefing_notes: initial.briefing_notes ?? "",
           status: initial.status,
           start_date: initial.start_date ?? "",
           expected_end_date: initial.expected_end_date ?? "",
           contract_value:
             initial.contract_value != null ? String(initial.contract_value) : "",
+          payment_status: initial.payment_status,
+          service_line: initial.service_line ?? "",
         }
       : {
           client_id: "",
           name: "",
           description: "",
+          briefing_notes: "",
           status: "in_progress",
           start_date: "",
           expected_end_date: "",
           contract_value: "",
+          payment_status: "to_invoice",
+          service_line: "",
         },
   });
 
@@ -148,6 +158,35 @@ export function ProjectForm({
       </div>
 
       <div className="space-y-2">
+        <Label>Área E33</Label>
+        <Controller
+          control={control}
+          name="service_line"
+          render={({ field }) => (
+            <Select
+              value={field.value ?? ""}
+              onValueChange={(v) => field.onChange(v ?? "")}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a linha de serviço…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Não definida</SelectItem>
+                {Object.entries(serviceLineLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        <p className="text-xs text-muted-foreground">
+          Alinha o projeto ao template de cronograma e plano de entregas.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="description">Descrição</Label>
         <textarea
           id="description"
@@ -156,6 +195,44 @@ export function ProjectForm({
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           {...register("description")}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="briefing_notes">Briefing</Label>
+        <textarea
+          id="briefing_notes"
+          rows={6}
+          placeholder="Texto do briefing, objetivos, público, referências, restrições…"
+          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          {...register("briefing_notes")}
+        />
+        <p className="text-xs text-muted-foreground">
+          Fica salvo no projeto. Quando configurar a IA depois, ela usa este texto como contexto.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label>Pagamento</Label>
+          <Controller
+            control={control}
+            name="payment_status"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(paymentStatusLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

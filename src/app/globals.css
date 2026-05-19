@@ -220,3 +220,17 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 1.25rem;
 }
+
+@utility card-solid-purple {
+  background: linear-gradient(140deg, #5c28db 0%, #3d1a99 100%);
+}
+
+@utility card-finance-tint {
+  background: linear-gradient(
+    165deg,
+    rgba(255, 189, 0, 0.07) 0%,
+    rgba(255, 255, 255, 0.04) 42%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 189, 0, 0.14);
+}

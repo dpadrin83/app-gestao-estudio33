@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hub E33 — Profissionais e banco de prompts (3 versões)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --font: 'Geist', system-ui, sans-serif;
+      --mono: 'Geist Mono', monospace;
+      --bg: #0A0B10;
+      --border: rgba(255,255,255,0.08);
+      --text: #F0F0F2;
+      --muted: #8B8E96;
+      --b-orange: #FF5400;
+      --b-purple: #5C28DB;
+      --b-blue: #2D79E6;
+      --success: #22C55E;
+      --grad: linear-gradient(90deg,#FFBD00,#FF5400,#FF0054,#C52AAF,#5C28DB,#2D79E6);
+    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; padding: 2rem 1.5rem 4rem; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse 600px 400px at 10% 0%, rgba(92,40,219,0.14), transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+    .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; }
+    .stripe { height: 3px; background: var(--grad); border-radius: 2px; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .lead { color: var(--muted); max-width: 54rem; margin-bottom: 2rem; }
+    .ref-box {
+      border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem;
+      margin-bottom: 2rem; background: rgba(0,0,0,0.25); font-size: 12px; color: var(--muted);
+    }
+    .ref-box strong { color: var(--text); }
+    .version {
+      margin-bottom: 3rem; border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; background: rgba(14,16,24,0.92);
+    }
+    .version-head {
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5rem;
+    }
+    .version-head h2 { font-size: 1.1rem; }
+    .tag {
+      font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem; border-radius: 4px; background: rgba(92,40,219,0.25); color: #c4b5fd;
+    }
+    .version-note { padding: 0 1.25rem 1rem; font-size: 12px; color: var(--muted); }
+    .mock { padding: 0 1rem 1.25rem; }
+    .pro-card {
+      border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden;
+    }
+    .pro-head {
+      padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+      background: rgba(92,40,219,0.08); border-bottom: 1px solid var(--border);
+    }
+    .pro-head h3 { font-size: 14px; }
+    .pro-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    .pro-body { padding: 12px 14px; }
+    .del-list { list-style: none; }
+    .del-list li {
+      padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+      display: flex; justify-content: space-between; gap: 8px;
+    }
+    .del-list li:last-child { border-bottom: none; }
+    .prompt-preview {
+      margin-top: 10px; padding: 10px; border-radius: 8px;
+      background: rgba(92,40,219,0.08); border: 1px solid rgba(92,40,219,0.25);
+      font-family: var(--mono); font-size: 10px; color: #c4b5fd; line-height: 1.6;
+      max-height: 72px; overflow: hidden;
+    }
+    textarea.prompt {
+      width: 100%; min-height: 64px; margin-top: 8px; padding: 8px 10px;
+      border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.35);
+      color: var(--text); font-family: var(--mono); font-size: 10px; resize: vertical;
+    }
+    .catalog-section { margin-bottom: 16px; }
+    .catalog-section h4 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--b-orange); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+    }
+    .catalog-section ol { padding-left: 1.25rem; color: var(--muted); font-size: 12px; }
+    .catalog-section li { margin-bottom: 4px; }
+    .catalog-section li span { color: var(--text); }
+    .qty { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    table.data { width: 100%; border-collapse: collapse; font-size: 11px; }
+    table.data th, table.data td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    table.data th {
+      font-family: var(--mono); font-size: 9px; text-transform: uppercase; color: var(--muted);
+      background: rgba(0,0,0,0.25);
+    }
+    .pill {
+      font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 99px;
+      background: rgba(45,121,230,0.15); color: #93c5fd;
+    }
+    .matrix-wrap { overflow-x: auto; }
+    .expand-row td { background: rgba(0,0,0,0.2); padding: 12px; }
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tab {
+      padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
+      font-size: 11px; color: var(--muted); background: transparent;
+    }
+    .tab.on { background: var(--b-purple); color: #fff; border-color: transparent; }
+    .pros-cons {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+      padding: 0 1.25rem 1.25rem; font-size: 12px;
+    }
+    .pros-cons h4 { font-size: 11px; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+    .pros-cons ul { padding-left: 1.1rem; color: var(--muted); }
+    .pick { color: var(--b-orange); font-weight: 500; }
+    code { font-family: var(--mono); font-size: 10px; }
+    .schema {
+      margin-top: 1rem; padding: 12px; border-radius: 10px; border: 1px dashed var(--border);
+      font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.7;
+    }
+    input.num, input.days-inp {
+      width: 48px; padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.35); color: var(--text); font-family: var(--mono);
+      font-size: 11px; text-align: center;
+    }
+    input.days-inp { width: 40px; }
+    .days-badge {
+      font-family: var(--mono); font-size: 10px; color: var(--muted); white-space: nowrap;
+    }
+    .phase-bar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 8px; padding: 10px 12px; background: rgba(92,40,219,0.1);
+      border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600;
+    }
+    .phase-bar .sub { font-weight: 400; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center;
+    }
+    .btn-add {
+      padding: 8px 14px; border-radius: 8px; border: 1px dashed var(--border);
+      background: rgba(92,40,219,0.08); color: var(--text); font-size: 12px; cursor: pointer;
+      font-family: var(--font);
+    }
+    .btn-add:hover { border-color: var(--b-purple); color: #c4b5fd; }
+    .new-etapa-box {
+      margin-top: 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--b-purple);
+      background: rgba(92,40,219,0.06); display: grid;
+      grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: end;
+    }
+    @media (max-width: 700px) {
+      .new-etapa-box { grid-template-columns: 1fr; }
+    }
+    .new-etapa-box label { font-size: 10px; color: var(--muted); font-family: var(--mono); display: block; margin-bottom: 4px; }
+    .new-etapa-box .field { display: flex; flex-direction: column; }
+    .btn-sm {
+      padding: 8px 12px; border-radius: 8px; border: none; font-size: 11px; font-weight: 600;
+      cursor: pointer; font-family: var(--font);
+    }
+    .btn-sm.primary { background: var(--b-purple); color: #fff; }
+    .btn-sm.ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    tr.phase-row td {
+      background: rgba(92,40,219,0.08); font-weight: 600; font-size: 11px;
+    }
+    tr.total-row td { font-weight: 600; background: rgba(255,255,255,0.03); }
+    .kpi-mini {
+      display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; font-size: 11px;
+    }
+    .kpi-mini span { color: var(--muted); }
+    .kpi-mini strong { color: var(--text); font-family: var(--mono); }
+    .macro-block {
+      border: 1px solid rgba(255,84,0,0.25);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      background: rgba(0,0,0,0.2);
+    }
+    .macro-title-bar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 12px 14px;
+      background: rgba(255,84,0,0.08);
+      border-bottom: 1px solid var(--border);
+    }
+    .macro-title-bar h3 { font-size: 15px; font-weight: 700; color: var(--b-orange); }
+    .macro-title-bar .hint { font-size: 10px; color: var(--muted); font-weight: 400; font-family: var(--mono); }
+    .sub-list { list-style: none; padding: 8px 12px 10px; }
+    .sub-list li {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 7px 0 7px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .sub-list li:last-child { border-bottom: none; }
+    .sub-list li::before { content: '↳ '; color: var(--b-orange); margin-left: -12px; margin-right: 4px; }
+    .understand-box {
+      border: 1px solid rgba(34,197,94,0.3);
+      background: rgba(34,197,94,0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 2rem;
+      font-size: 12px;
+    }
+    .understand-box h3 { font-size: 13px; margin-bottom: 8px; color: var(--success); }
+    .hierarchy { font-family: var(--mono); font-size: 11px; line-height: 1.9; color: var(--muted); }
+    .hierarchy strong { color: var(--text); }
+    .fluxo-box {
+      border: 1px solid rgba(45,121,230,0.35);
+      background: rgba(45,121,230,0.06);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 1.25rem;
+      font-size: 12px;
+    }
+    .fluxo-box h3 { font-size: 13px; margin-bottom: 10px; color: #93c5fd; }
+    .fluxo-steps { display: grid; gap: 10px; }
+    .fluxo-step {
+      display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start;
+      padding: 10px 12px; border-radius: 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+    }
+    .fluxo-step .num {
+      width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 12px; font-weight: 700; background: var(--b-blue); color: #fff;
+    }
+    .fluxo-step strong { color: var(--text); display: block; margin-bottom: 2px; }
+    .fluxo-step span { color: var(--muted); font-size: 11px; }
+    .form-panel {
+      margin-top: 12px; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+    }
+    .form-panel.on { border-color: var(--b-purple); background: rgba(92,40,219,0.06); }
+    .form-panel h4 {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin-bottom: 10px; font-family: var(--mono);
+    }
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end;
+    }
+    @media (max-width: 700px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-grid .span2 { grid-column: 1 / -1; }
+    .form-input, select.form-select {
+      width: 100%; padding: 8px 10px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.3);
+      color: #f0f0f2; font-size: 12px; font-family: var(--font);
+    }
+    select.form-select { cursor: pointer; }
+    .item-left { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+    .type-badge {
+      font-family: var(--mono); font-size: 8px; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 2px 5px; border-radius: 4px; flex-shrink: 0;
+    }
+    .type-badge.sub { background: rgba(255,84,0,0.15); color: #fdba74; }
+    .type-badge.del { background: rgba(45,121,230,0.2); color: #93c5fd; }
+    .sub-list li.deliverable-row::before { content: '◆ '; color: var(--b-blue); }
+    .macro-block.selected { outline: 2px solid var(--b-purple); outline-offset: 2px; }
+    .form-hint { font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stripe"></div>
+    <h1>Profissionais E33 + banco de prompts</h1>
+    <p class="lead">
+      Três formas de organizar no Hub o que o estúdio já fazia nos prints (posicionamento, identidade, aplicações…)
+      e o que o <strong>Briefing Studio</strong> faz para soluções digitais (PRD + prompt de construção).
+      Cada <strong>sub-etapa</strong> tem dias e prompt. Você cria <strong>áreas macro</strong> (ex.: Redação copy) e lista o trabalho dentro delas.
+    </p>
+
+    <div class="understand-box">
+      <h3>Como você descreveu (modelo mental)</h3>
+      <div class="hierarchy">
+        <strong>1. Área macro</strong> — nome do bloco de trabalho · ex.: <strong>Redação copy</strong><br />
+        &nbsp;&nbsp;↳ <strong>2. Sub-etapas</strong> — passos internos, cada um com dias · ex.: Pesquisa (1d), Leitura do briefing (1d), Criação dos textos (3d)<br />
+        &nbsp;&nbsp;↳ Opcional: <strong>3. Entregável ao cliente</strong> — o que sai no portal · ex.: Copy site aprovado<br />
+        <br />
+        <span style="color:var(--muted)">Isso é diferente da fase do Hub (planejamento → entrega): a macro é <em>como você organiza o trabalho</em>; a fase é <em>onde o projeto está</em> no cronograma.</span>
+      </div>
+    </div>
+
+    <div class="ref-box">
+      <strong>Base de dados sugerida:</strong><br />
+      <code>project_macro_areas</code> (id, project_id, nome, professional_id, sort_order) ·
+      <code>macro_work_items</code> (tipo: sub_etapa | entregavel, nome, estimated_days, professional_id) ·
+      <code>professionals</code> + lista consolidada (catálogo fixo E33) — campo <strong>Área profissional</strong> no formulário de entregável ·
+      soma dos dias → cronograma.
+    </div>
+
+    <!-- V1 -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Versão 1 — Área macro + sub-etapas (seu exemplo)</h2>
+        <span class="tag">Recomendada para o Hub</span>
+      </div>
+      <p class="version-note">
+        Três ações: <strong>+ Nova área macro</strong> · <strong>+ Sub-etapa</strong> ·
+        <strong>+ Entregável</strong> (nome + <strong>área profissional</strong> do catálogo + dias).
+      </p>
+      <div class="mock">
+        <div class="fluxo-box">
+          <h3>Como você cadastra</h3>
+          <div class="fluxo-steps">
+            <div class="fluxo-step"><span class="num">1</span><div><strong>+ Nova área macro</strong><span>Nome do bloco (ex.: Redação copy). Profissional padrão opcional.</span></div></div>
+            <div class="fluxo-step"><span class="num">2</span><div><strong>+ Sub-etapa</strong><span>Na macro selecionada: Pesquisa, Briefing… Nome + dias.</span></div></div>
+            <div class="fluxo-step"><span class="num">3</span><div><strong>+ Entregável</strong><span>Nome (ex.: Assinatura de e-mail) + Área profissional (lista dos 11) + dias.</span></div></div>
+          </div>
+        </div>
+        <div class="kpi-mini">
+          <span>Total: <strong>42 dias</strong></span><span>· 5 áreas macro</span><span>· 28 itens</span>
+        </div>
+
+        <div class="macro-block selected">
+
+          <div class="macro-title-bar">
+            <div>
+              <h3>Redação copy</h3>
+              <span class="hint">área macro · profissional: Copywriter</span>
+            </div>
+            <span class="sub" style="font-family:var(--mono);font-size:11px;color:var(--muted)">subtotal <strong style="color:var(--b-orange)">6 dias</strong></span>
+          </div>
+          <ul class="sub-list">
+            <li><span class="item-left"><span class="type-badge sub">sub-etapa</span> Pesquisa</span><span class="days-badge"><input class="days-inp" value="1" /> dias</span></li>
+            <li><span class="item-left"><span class="type-badge sub">sub-etapa</span> Leitura do briefing</span><span class="days-badge"><input class="days-inp" value="1" /> dias</span></li>
+            <li><span class="item-left"><span class="type-badge sub">sub-etapa</span> Criação dos textos</span><span class="days-badge"><input class="days-inp" value="3" /> dias</span></li>
+            <li><span class="item-left"><span class="type-badge sub">sub-etapa</span> Revisão interna</span><span class="days-badge"><input class="days-inp" value="1" /> dias</span></li>
+          </ul>
+          <div style="padding:0 14px 12px">
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:6px">Prompt da macro (banco)</label>
+            <textarea class="prompt" readonly style="min-height:48px">Copywriter E33 — tom [TOM], briefing [CLIENTE]. Sub-etapa: [SUB_ETAPA]...</textarea>
+          </div>
+        </div>
+
+        <div class="macro-block">
+          <div class="macro-title-bar">
+            <div>
+              <h3>Posicionamento de marca</h3>
+              <span class="hint">área macro · profissional: Estrategista de marca</span>
+            </div>
+            <span class="sub" style="font-family:var(--mono);font-size:11px;color:var(--muted)">subtotal <strong style="color:var(--b-orange)">9 dias</strong></span>
+          </div>
+          <ul class="sub-list">
+            <li><span>Análise SWOT</span><span class="days-badge"><input class="days-inp" value="3" /> dias</span></li>
+            <li><span>PUV · Personas</span><span class="days-badge"><input class="days-inp" value="4" /> dias</span></li>
+            <li><span>Manifesto</span><span class="days-badge"><input class="days-inp" value="2" /> dias</span></li>
+          </ul>
+        </div>
+
+        <div class="macro-block">
+          <div class="macro-title-bar">
+            <div>
+              <h3>Aplicações de marca</h3>
+              <span class="hint">área macro · profissional padrão: Designer de aplicações</span>
+            </div>
+            <span class="sub" style="font-family:var(--mono);font-size:11px;color:var(--muted)">subtotal <strong style="color:var(--b-orange)">4 dias</strong></span>
+          </div>
+          <ul class="sub-list">
+            <li class="deliverable-row">
+              <span class="item-left">
+                <span class="type-badge del">entregável</span>
+                Assinatura de e-mail
+                <span class="pill">Designer de aplicações</span>
+              </span>
+              <span class="days-badge"><input class="days-inp" value="2" /> dias</span>
+            </li>
+            <li class="deliverable-row">
+              <span class="item-left">
+                <span class="type-badge del">entregável</span>
+                Papelaria institucional
+                <span class="pill">Designer de aplicações</span>
+              </span>
+              <span class="days-badge"><input class="days-inp" value="2" /> dias</span>
+            </li>
+          </ul>
+          <p class="form-hint" style="padding:0 14px 12px;margin:0">
+            O entregável tem <strong>nome próprio</strong> e você escolhe a <strong>área profissional</strong> no cadastro.
+          </p>
+        </div>
+
+
+        <div class="toolbar" style="margin-top:16px">
+          <button type="button" class="btn-add">+ Nova área macro</button>
+          <button type="button" class="btn-add">+ Sub-etapa nesta macro</button>
+          <button type="button" class="btn-add">+ Entregável</button>
+        </div>
+
+        <div class="form-panel on">
+          <h4>Formulário aberto — + Entregável (exemplo)</h4>
+          <div class="form-grid">
+            <div class="field span2">
+              <label>Nome do entregável</label>
+              <input class="form-input" type="text" value="Assinatura de e-mail" placeholder="Ex: Assinatura de e-mail" />
+            </div>
+            <div class="field span2">
+              <label>Área profissional (catálogo E33)</label>
+              <select class="form-select">
+                <option>— escolher na lista —</option>
+                <option>Estrategista de marca</option>
+                <option>Designer identidade visual</option>
+                <option selected>Designer de aplicações</option>
+                <option>Designer presença digital</option>
+                <option>Copywriter / conteúdo</option>
+                <option>Designer de peças</option>
+                <option>Motion / vídeo</option>
+                <option>UI/UX digital</option>
+                <option>Arquiteto / DEV</option>
+                <option>Growth / tráfego</option>
+                <option>PM / orquestrador</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Dias estimados</label>
+              <input class="days-inp" type="text" value="2" style="width:56px" />
+            </div>
+            <div class="field">
+              <label>Dentro da macro (opcional)</label>
+              <select class="form-select">
+                <option>— nenhuma —</option>
+                <option selected>Aplicações de marca</option>
+                <option>Redação copy</option>
+                <option>Posicionamento de marca</option>
+              </select>
+            </div>
+            <div class="field span2" style="display:flex;gap:8px;align-items:flex-end">
+              <button type="button" class="btn-sm primary">Salvar entregável</button>
+              <button type="button" class="btn-sm ghost">Cancelar</button>
+            </div>
+          </div>
+          <p class="form-hint">A <strong>área profissional</strong> vem da lista consolidada (anexo).</p>
+        </div>
+
+        <div class="form-panel">
+          <h4>Formulário — + Nova área macro</h4>
+          <div class="form-grid">
+            <div class="field span2">
+              <label>Nome da área macro</label>
+              <input class="form-input" type="text" placeholder="Ex: Redação copy" />
+            </div>
+            <div class="field span2">
+              <label>Profissional padrão (opcional)</label>
+              <select class="form-select">
+                <option>— nenhum —</option>
+                <option>Copywriter / conteúdo</option>
+                <option>Designer de aplicações</option>
+              </select>
+            </div>
+            <div class="field span2" style="display:flex;gap:8px">
+              <button type="button" class="btn-sm primary">Criar macro</button>
+              <button type="button" class="btn-sm ghost">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-panel">
+          <h4>Formulário — + Sub-etapa (macro: Redação copy)</h4>
+          <div class="form-grid">
+            <div class="field span2">
+              <label>Nome da sub-etapa</label>
+              <input class="form-input" type="text" placeholder="Ex: Pesquisa" />
+            </div>
+            <div class="field">
+              <label>Dias</label>
+              <input class="days-inp" type="text" value="1" style="width:56px" />
+            </div>
+            <div class="field" style="display:flex;gap:8px;align-items:flex-end">
+              <button type="button" class="btn-sm primary">Adicionar</button>
+              <button type="button" class="btn-sm ghost">Cancelar</button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div>
+          <h4>Vantagens</h4>
+          <ul>
+            <li>Dias por sub-etapa — soma vira cronograma</li>
+            <li class="pick">Áreas macro como você descreveu (Redação copy…)</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Atenção</h4>
+          <ul>
+            <li>Soma de dias deve bater com prazo do projeto</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- V2 -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Versão 2 — Catálogo antigo do estúdio (como os prints)</h2>
+        <span class="tag">Formato legado E33</span>
+      </div>
+      <p class="version-note">
+        Replica a estrutura dos PDFs antigos: seções numeradas (Posicionamento, Identidade, Aplicações…).
+        Cada linha: profissional · <strong>dias</strong> editável · prompt. Botão <strong>+ Nova etapa</strong> no catálogo.
+      </p>
+      <div class="mock">
+        <div class="toolbar">
+          <button type="button" class="btn-add">+ Nova etapa (grupo)</button>
+          <button type="button" class="btn-add">+ Entregável na etapa</button>
+        </div>
+        <div class="tabs">
+          <button type="button" class="tab on">Catálogo completo</button>
+          <button type="button" class="tab">Só deste projeto</button>
+        </div>
+
+        <div class="catalog-section">
+          <h4>Posicionamento de marca <span class="sub" style="float:right;font-weight:400">9 dias</span></h4>
+          <ol>
+            <li><span>Nome e Slogan</span> · <input class="days-inp" value="1" /> d · <span class="pill">Estrategista</span> · <a href="#" style="color:var(--b-blue);font-size:10px">prompt</a></li>
+            <li><span>Análise de mercado</span> · <input class="days-inp" value="2" /> d · <span class="pill">Estrategista</span> · <a href="#" style="color:var(--b-blue);font-size:10px">prompt</a></li>
+            <li><span>Análise SWOT</span> · <input class="days-inp" value="3" /> d · <span class="pill">Estrategista</span> · <a href="#" style="color:var(--b-blue);font-size:10px">prompt</a></li>
+            <li><span>PUV · Personas</span> · <input class="days-inp" value="2" /> d · <span class="pill">Estrategista</span></li>
+            <li><span>Manifesto</span> · <input class="days-inp" value="1" /> d · <span class="pill">Estrategista</span></li>
+          </ol>
+        </div>        <div class="catalog-section">
+          <h4>1 — Identidade visual <span style="float:right;font-weight:400;font-family:var(--mono);font-size:10px;color:var(--muted)">18 dias</span></h4>
+          <ol>
+            <li><span>Logo design</span> · <input class="days-inp" value="5" /> d · <span class="pill">ID Visual</span></li>
+            <li><span>Paleta · Tipografia</span> · <input class="days-inp" value="3" /> d · <span class="pill">ID Visual</span></li>
+            <li><span>Estilo fotográfico com IA</span> · <span class="pill">ID Visual</span></li>
+            <li><span>Emojis · Ícones · Grafismos</span> · <span class="pill">ID Visual</span></li>
+            <li><span>Manual IDV</span> · <input class="days-inp" value="10" /> d · <span class="pill">ID Visual</span></li>
+          </ol>
+        </div>
+
+        <div class="catalog-section">
+          <h4>Aplicações <span style="float:right;font-weight:400;font-family:var(--mono);font-size:10px;color:var(--muted)">6 dias</span></h4>
+          <ol>
+            <li><span>Assinatura e-mail</span> <span class="qty">×5</span> · <input class="days-inp" value="1" /> d · <span class="pill">Aplicações</span></li>
+            <li><span>Cartão visita</span> <span class="qty">×5</span> · <input class="days-inp" value="2" /> d · <span class="pill">Aplicações</span></li>
+            <li><span>Papel carta</span> <span class="qty">×3</span> · <span class="pill">Aplicações</span></li>
+            <li><span>Banner · Wallpaper · Camiseta · Bolsa</span> · <span class="pill">Aplicações</span></li>
+          </ol>
+        </div>
+
+        <div class="catalog-section">
+          <h4>Presença digital</h4>
+          <ol>
+            <li><span>Instagram</span> (perfil, bio, capas) <span class="qty">×1</span> · <span class="pill">Social</span></li>
+            <li><span>LinkedIn · Facebook · YouTube · TikTok</span> · <span class="pill">Social</span></li>
+          </ol>
+        </div>
+
+        <div class="catalog-section">
+          <h4>Estratégia &amp; produção de conteúdo</h4>
+          <ol>
+            <li><span>Pauta · Copy · Design · Publicação</span> · <span class="pill">Conteúdo</span></li>
+            <li><span>Post · Story · Carrossel · Vídeo 30s</span> · <span class="pill">Conteúdo</span></li>
+          </ol>
+          <p style="font-size:10px;color:var(--muted);margin-top:8px">*Ps: requisito mínimo Guia de Branding · 2 levas de ajuste por peça</p>
+        </div>
+
+        <div class="new-etapa-box" style="margin-top:16px">
+          <div class="field" style="grid-column:1/-1">
+            <label>Nova etapa no catálogo do projeto</label>
+            <input type="text" placeholder="Nome da etapa" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.3);color:#f0f0f2" />
+          </div>
+          <div class="field"><label>Dias</label><input class="num" value="2" /></div>
+          <div class="field"><label>1º entregável</label><input type="text" placeholder="Item" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.3);color:#f0f0f2" /></div>
+          <div class="field"><label>Dias item</label><input class="days-inp" value="1" /></div>
+          <div style="display:flex;gap:8px;align-items:flex-end"><button type="button" class="btn-sm primary">Adicionar</button></div>
+        </div>
+        <div class="prompt-preview" style="max-height:none;margin-top:12px">
+          Exemplo prompt vinculado a “Análise SWOT”:<br />
+          Analise [CLIENTE] no segmento [SEGMENTO]. Matriz SWOT com 5 itens por quadrante, linguagem executiva, sem jargão vazio. Formato: tabela + 3 implicações estratégicas.
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div>
+          <h4>Vantagens</h4>
+          <ul>
+            <li>100% familiar — igual proposta comercial antiga</li>
+            <li>Cliente reconhece o pacote</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Atenção</h4>
+          <ul>
+            <li>Lista longa; digital (DEV) fica à parte</li>
+            <li>Muitos prompts para cadastrar (1 por linha)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- V3 -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Versão 3 — Tabela mestre: etapa × entregável × dias × prompt</h2>
+        <span class="tag">Operação + orçamento</span>
+      </div>
+      <p class="version-note">
+        Uma tabela editável (como o plano de áreas V1): cada linha é um item do catálogo,
+        com profissional, <strong>dias</strong> (cronograma), horas e prompt. Inclui <strong>+ Nova etapa</strong>. Ideal para misturar criativo + digital no mesmo projeto.
+      </p>
+      <div class="mock">
+        <div class="toolbar">
+          <button type="button" class="btn-add">+ Nova etapa</button>
+          <button type="button" class="btn-add">+ Linha (entregável)</button>
+        </div>
+        <div class="matrix-wrap">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Etapa / grupo</th>
+                <th>Entregável</th>
+                <th>Profissional</th>
+                <th>Qtd</th>
+                <th style="text-align:right">Dias</th>
+                <th style="text-align:right">h est.</th>
+                <th>Prompt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="phase-row"><td colspan="7">Planejamento — subtotal <strong>9 dias</strong></td></tr>
+              <tr>
+                <td>Planejamento</td>
+                <td>Análise SWOT</td>
+                <td><span class="pill">Estrategista</span></td>
+                <td>1</td>
+                <td style="text-align:right"><input class="days-inp" value="3" /></td>
+                <td style="text-align:right">4</td>
+                <td><a href="#" style="color:var(--b-blue);font-size:10px">prompt</a></td>
+              </tr>
+              <tr class="phase-row"><td colspan="7">Produção — subtotal <strong>18 dias</strong></td></tr>
+              <tr>
+                <td>Produção</td>
+                <td>Manual de identidade visual</td>
+                <td><span class="pill">ID Visual</span></td>
+                <td>1</td>
+                <td style="text-align:right"><input class="days-inp" value="10" /></td>
+                <td style="text-align:right">16</td>
+                <td><a href="#" style="color:var(--b-blue);font-size:10px">prompt</a></td>
+              </tr>
+              <tr>
+                <td>Produção</td>
+                <td>Cartão de visita</td>
+                <td><span class="pill">Aplicações</span></td>
+                <td>5</td>
+                <td style="text-align:right"><input class="days-inp" value="2" /></td>
+                <td style="text-align:right">3</td>
+                <td><a href="#" style="color:var(--b-blue);font-size:10px">prompt</a></td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="4">Total do projeto</td>
+                <td style="text-align:right;font-family:var(--mono)">42</td>
+                <td style="text-align:right;font-family:var(--mono)">33</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="new-etapa-box" style="margin-top:12px">
+          <div class="field" style="grid-column:1/-1">
+            <label>Nova etapa</label>
+            <input type="text" placeholder="Ex: Homologação cliente" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.3);color:#f0f0f2" />
+          </div>
+          <div class="field">
+            <label>Dias (etapa)</label>
+            <input class="num" value="2" />
+          </div>
+          <div class="field">
+            <label>Entregável</label>
+            <input type="text" placeholder="Nome do item" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(0,0,0,0.3);color:#f0f0f2" />
+          </div>
+          <div class="field">
+            <label>Dias (item)</label>
+            <input class="days-inp" value="1" />
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <button type="button" class="btn-sm primary">Inserir etapa + item</button>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:10px">
+          Total: <strong style="color:var(--text)">42 dias</strong> · <strong>33h</strong> · 5 profissionais envolvidos · prompts versionados no banco
+        </p>
+      </div>
+      <div class="pros-cons">
+        <div>
+          <h4>Vantagens</h4>
+          <ul>
+            <li class="pick">Une catálogo antigo + horas + prompts num lugar</li>
+            <li>Exporta para proposta e para IA por linha</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Atenção</h4>
+          <ul>
+            <li>Mais trabalho de cadastro inicial</li>
+            <li>Tela densa — precisa filtros por grupo</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lista consolidada -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Anexo — Lista consolidada de profissionais E33 (catálogo fixo)</h2>
+      </div>
+      <p class="version-note" style="margin-top:0">Referência estável dos 11 papéis E33. No projeto você monta <strong>áreas macro</strong> e escolhe o profissional da lista — não é a mesma coisa que a macro do cronograma.</p>
+      <div class="mock" style="font-size:12px;color:var(--muted)">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Profissional (papel)</th>
+              <th>Área Hub</th>
+              <th>Entregáveis típicos</th>
+              <th>Dias típ.</th>
+              <th>Origem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Estrategista de marca</td><td>branding</td><td>Posicionamento, SWOT, PUV, personas, manifesto</td><td>8–12</td><td>Prints E33</td></tr>
+            <tr><td>2</td><td>Designer identidade visual</td><td>identity</td><td>Logo, sistema visual, manual IDV</td><td>Prints E33</td></tr>
+            <tr><td>3</td><td>Designer de aplicações</td><td>identity</td><td>Papelaria, brindes, assinatura</td><td>Prints E33</td></tr>
+            <tr><td>4</td><td>Designer presença digital</td><td>content</td><td>Perfis redes, kits sociais</td><td>Prints E33</td></tr>
+            <tr><td>5</td><td>Copywriter / conteúdo</td><td>content</td><td>Copy, pauta, roteiros</td><td>Prints E33</td></tr>
+            <tr><td>6</td><td>Designer de peças</td><td>content</td><td>Post, story, carrossel, vídeo curto</td><td>Prints E33</td></tr>
+            <tr><td>7</td><td>Motion / vídeo</td><td>content</td><td>Motion, vinheta, vídeo 30s</td><td>Prints E33</td></tr>
+            <tr><td>8</td><td>UI/UX digital</td><td>web_design</td><td>Wire, UI, protótipo Figma</td><td>Hub + Briefing</td></tr>
+            <tr><td>9</td><td>Arquiteto / DEV</td><td>web_dev</td><td>PRD, MVP, integrações, Hub</td><td>Briefing Studio</td></tr>
+            <tr><td>10</td><td>Growth / tráfego</td><td>hybrid</td><td>Funis, ads, automação DM</td><td>Prints + digital</td></tr>
+            <tr><td>11</td><td>PM / orquestrador</td><td>hybrid</td><td>Guia síntese, cronograma, entregas</td><td>Hub</td></tr>
+          </tbody>
+        </table>
+        <div class="schema">
+-- Campos prompt_templates (exemplo)
+id, professional_id, catalog_item_id, title,
+body text,  -- com placeholders [CLIENTE] [ENTREGÁVEL] [TOM]
+variables jsonb,  -- ["CLIENTE","SEGMENTO","TOM"]
+version int, is_active boolean, updated_at
+        </div>
+      </div>
+    </section>
+
+    <p style="color:var(--muted);font-size:12px;margin-top:1rem;">
+      Arquivo: <code>docs/mockups/profissionais-banco-prompts-versoes.html</code>
+    </p>
+  </div>
+</body>
+</html>

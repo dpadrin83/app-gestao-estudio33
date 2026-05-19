@@ -6,18 +6,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ClientListFilter } from "@/lib/actions/clients";
 
-const tabs = [
+const tabs: { value: ClientListFilter; label: string }[] = [
+  { value: "operational", label: "Em operação" },
+  { value: "prospect", label: "Prospectos" },
   { value: "active", label: "Ativos" },
-  { value: "inactive", label: "Inativos" },
+  { value: "paused", label: "Em pausa" },
+  { value: "closed", label: "Encerrados" },
+  { value: "inactive", label: "Arquivados" },
   { value: "all", label: "Todos" },
-] as const;
+];
 
 export function ClientFilters({
   initialStatus,
   initialQ,
 }: {
-  initialStatus: string;
+  initialStatus: ClientListFilter;
   initialQ: string;
 }) {
   const router = useRouter();
@@ -25,7 +30,6 @@ export function ClientFilters({
   const [q, setQ] = useState(initialQ);
   const [, startTransition] = useTransition();
 
-  // debounce simples na busca
   useEffect(() => {
     const t = setTimeout(() => {
       const next = new URLSearchParams(params.toString());
@@ -37,24 +41,24 @@ export function ClientFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  function setStatus(value: string) {
+  function setStatus(value: ClientListFilter) {
     const next = new URLSearchParams(params.toString());
     next.set("status", value);
     startTransition(() => router.replace(`/clients?${next.toString()}`));
   }
 
   return (
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="relative max-w-xs flex-1">
+    <div className="mb-4 flex flex-col gap-3">
+      <div className="relative max-w-md flex-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nome…"
+          placeholder="Buscar empresa, contato, CNPJ, e-mail…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           className="pl-9"
         />
       </div>
-      <div className="inline-flex rounded-md border border-border bg-card p-1">
+      <div className="flex flex-wrap gap-1 rounded-md border border-border bg-card p-1">
         {tabs.map((tab) => {
           const active = initialStatus === tab.value;
           return (
@@ -64,7 +68,7 @@ export function ClientFilters({
               variant="ghost"
               onClick={() => setStatus(tab.value)}
               className={cn(
-                "h-7 px-3 text-xs",
+                "h-7 px-2.5 text-xs",
                 active && "bg-secondary text-foreground",
               )}
             >

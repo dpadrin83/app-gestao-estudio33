@@ -20,6 +20,7 @@ export interface DashboardStats {
   totalMsWeek: number;
   totalMsMonth: number;
   activeProjectsCount: number;
+  pendingDeliverablesCount: number;
   perProjectThisWeek: Array<{
     projectId: string;
     projectName: string;
@@ -38,10 +39,18 @@ export async function getDashboardStats(now = new Date()): Promise<DashboardStat
   const monthEnd = endOfMonth(now);
 
   // 1. Conta projetos ativos
-  const { count: activeProjectsCount } = await supabase
-    .from("projects")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "in_progress");
+  const [activeRes, pendingRes] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "in_progress"),
+    supabase
+      .from("deliverables")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "sent_to_client"),
+  ]);
+  const activeProjectsCount = activeRes.count;
+  const pendingDeliverablesCount = pendingRes.count;
 
   // 2. Sessões do mês — usadas para o card de mês E pra derivar a semana
   // (sessões da semana são subconjunto das do mês na maioria dos casos —
@@ -99,6 +108,7 @@ export async function getDashboardStats(now = new Date()): Promise<DashboardStat
     totalMsWeek,
     totalMsMonth,
     activeProjectsCount: activeProjectsCount ?? 0,
+    pendingDeliverablesCount: pendingDeliverablesCount ?? 0,
     perProjectThisWeek,
   };
 }

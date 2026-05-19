@@ -62,6 +62,7 @@ function normalize(values: ProjectFormValues) {
     client_id: values.client_id,
     name: values.name.trim(),
     description: values.description?.trim() || null,
+    briefing_notes: values.briefing_notes?.trim() || null,
     status: values.status,
     start_date: values.start_date && values.start_date !== "" ? values.start_date : null,
     expected_end_date:
@@ -70,7 +71,15 @@ function normalize(values: ProjectFormValues) {
         : null,
     contract_value:
       !cv || cv === "" ? null : Number(cv.replace(",", ".")),
+    payment_status: values.payment_status,
+    service_line: !values.service_line ? null : values.service_line,
   };
+}
+
+export async function listProjectsByClient(
+  clientId: string,
+): Promise<ProjectWithClient[]> {
+  return listProjects({ clientId });
 }
 
 export async function createProject(
@@ -139,7 +148,7 @@ export async function listActiveClients(): Promise<
   const { data, error } = await supabase
     .from("clients")
     .select("id, name")
-    .eq("status", "active")
+    .in("status", ["active", "prospect", "paused"])
     .order("name");
   if (error) {
     console.error("[listActiveClients]", error);

@@ -7,8 +7,8 @@ Cada fase do projeto vira um PRD próprio, que detalha escopo, telas, modelo de 
 ## Ordem prevista
 
 - `prd-fase-1-nucleo-operacional.md` — auth, clientes, projetos, dashboard mínimo
-- `prd-fase-2-gantt.md` — cronograma com dependências e recálculo
-- `prd-fase-3-entregaveis-portal-financeiro.md` — entregáveis, portal do cliente, financeiro, time tracking
+- [fase-2-gantt.md](fase-2-gantt.md) — cronograma com dependências e recálculo ✅
+- [fase-3-entregaveis-portal-financeiro.md](fase-3-entregaveis-portal-financeiro.md) — entregáveis, portal do cliente, financeiro ✅
 - `prd-fase-4-ia-integracoes.md` — camada de IA e integração com Briefing Studio
 
 ## Regra

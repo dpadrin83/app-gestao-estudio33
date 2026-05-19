@@ -14,6 +14,112 @@ Formato sugerido:
 
 ---
 
+## 2026-05-19 — Fase 8: plano de entregas por área + portal com fases
+
+**Contexto:** Danilo pediu operação completa por linha de serviço (Branding, Identidade, Conteúdo, Digital) e área do cliente para acompanhar fase do projeto.
+
+**Decisões:**
+- **`projects.service_line`** — branding | identity | content | web_design | web_dev | hybrid.
+- **`schedule_template_deliverables`** — entregas padrão por template, ligadas a `activity_sort_order`.
+- **Ao aplicar template** — gera atividades + entregáveis em rascunho já vinculados; preenche `service_line` do projeto se vazio.
+- **Atividades do template** — `visible_to_client: true` para o portal mostrar fases (planejamento → entrega).
+- **Templates novos:** Branding/estratégia, Produção de conteúdo; seeds de entregas nos 5 templates.
+- **UI admin:** abas por âncora, seção Plano de entregas, vínculo entregável ↔ atividade.
+- **Portal:** lista e detalhe com stepper de fases, % progresso e próximo marco.
+
+**Pendente manual:** migration `20260519000000_phase8_service_line_deliverable_plan.sql`.
+
+---
+
+## 2026-05-18 — Fase 7: links, histórico cliente, pagamento, settings
+
+**Decisões:**
+- **`project_links`** — links externos por projeto (Drive, Figma, etc.), sem Storage.
+- **Ficha do cliente** lista todos os projetos vinculados.
+- **`payment_status`** no formulário do projeto (a faturar / faturado / recebido).
+- **`/settings`** — edição da taxa horária em `app_settings`.
+
+**Pendente manual:** migration `20260518230000_phase7_links_payment.sql`.
+
+---
+
+## 2026-05-18 — Fase 6 implementada: operação diária
+
+**Contexto:** Fase 5 validada. Melhorias sem API externa.
+
+**Decisões:**
+- **Views salvas** em `/projects` via query `view=` (ativos, risco, concluidos, todos).
+- **Progresso %** = atividades concluídas / total do cronograma por projeto.
+- **Em risco** = atividade atrasada ou vence em 7 dias (projetos em produção).
+- **Feed de atividade** agrega entregáveis, comentários, sessões e tarefas feitas — sem tabela nova.
+- **Financeiro** com 3 cards de totais no topo da página.
+
+---
+
+## 2026-05-18 — Fase 5 implementada: tarefas Kanban
+
+**Contexto:** Danilo pediu para adiar a IA (sem chave Anthropic ainda). Seguir construindo valor operacional diário.
+
+**Decisões:**
+- **Tabela `tasks`** — status `todo` | `doing` | `done`, vínculo opcional com `activities`, só admin (RLS).
+- **Kanban na página do projeto** — 3 colunas; mover com setas (sem drag-and-drop na v1).
+- **Campo `briefing_notes`** no formulário do projeto (já existia na migration Fase 4).
+- **Dashboard** — quarto KPI “Aguardando cliente” (entregáveis `sent_to_client`).
+- **UI de IA oculta** sem `ANTHROPIC_API_KEY` — código da Fase 4 permanece para ativar depois.
+
+**Pendente manual:** migration `20260518210000_phase5_tasks.sql`.
+
+---
+
+## 2026-05-18 — Fase 4 implementada: IA e Briefing Studio
+
+**Contexto:** Fases 1–3 em uso. PRD `prds/fase-4-ia-integracoes.md`.
+
+**Decisões:**
+- **Anthropic SDK** (`@anthropic-ai/sdk`) no servidor — chave só em `ANTHROPIC_API_KEY`; modelo configurável via `ANTHROPIC_MODEL`.
+- **Histórico em `ai_generations`** — resumos, sugestões de cronograma e insights; RLS só admin.
+- **`projects.briefing_notes`** — texto do briefing importado ou manual.
+- **Alertas híbridos** — regras determinísticas no dashboard (`getSmartAlerts`); insights IA sob demanda (botão).
+- **Cronograma IA** — JSON estruturado da Claude → `applySuggestedSchedule` (mesma lógica que template).
+- **Webhook Briefing Studio** — `POST /api/integrations/briefing-studio` com Bearer secret; usa `SUPABASE_SERVICE_ROLE_KEY`; rota pública no middleware.
+
+**Pendente manual:** migration `20260518200000_phase4_ai.sql` + chaves no `.env.local`.
+
+---
+
+## 2026-05-18 — Fase 3 implementada: entregáveis, portal e financeiro
+
+**Contexto:** Fase 2 validada pelo Danilo. PRD Fase 3 gerado e implementado.
+
+**Decisões:**
+- **Papel de usuário via `clients.auth_user_id`** — sem tabela `profiles` extra. Quem tem `auth_user_id` no cadastro = cliente; quem não tem = admin (Danilo).
+- **RLS com funções `is_hub_admin()` e `my_client_id()`** — policies refinadas em todas as tabelas existentes.
+- **Entregáveis com link externo** (Drive/Figma) — sem Supabase Storage na v1; versionamento em `deliverable_versions`.
+- **Portal em route group `(portal)/`** — layout simplificado, sem sidebar admin; middleware redireciona perfis.
+- **Financeiro:** custos manuais + horas do timer × `hourly_rate` (default R$ 150 em `app_settings`); margem = orçamento − custos − mão de obra.
+- **E-mails (Resend)** adiados para Fase 3.1.
+
+**Pendente manual:** migration `20260518180000_phase3_portal_deliverables_finance.sql` no SQL Editor.
+
+---
+
+## 2026-05-18 — Fase 2 implementada: cronograma Gantt
+
+**Contexto:** PRD `prds/fase-2-gantt.md` gerado a partir do briefing (seção 6). Fase 1 já estava funcional.
+
+**Decisões:**
+- **Gantt custom em React** (barras CSS + `gantt-utils`) em vez de frappe-gantt/dhtmlx — controle total da identidade E33 dark, zero licença, sem SSR problemático.
+- **Recálculo em Postgres** (`recalculate_project_schedule`) chamado via `supabase.rpc` após cada mutation — alinhado ao briefing; Edge Function fica para quando houver jobs assíncronos.
+- **Tabelas em inglês** (`activities`, `activity_dependencies`) — consistente com Fase 1 (`clients`, `projects`).
+- **Templates seed** (Identidade visual, Landing page, Sistema web) na migration; aplicar template só em projeto sem atividades (evita sobrescrever trabalho).
+- **Drag no Gantt** deixado para v2 — v1 foca em tabela + barras + forms; menos risco de bug em scheduling.
+
+**Rotas novas:** `/schedule`, seção Cronograma em `/projects/[id]#cronograma`.
+
+**Pendente manual:** rodar `supabase/migrations/20260518120000_phase2_gantt.sql` no SQL Editor.
+
+---
+
 ## 2026-05-18 — Fase 1 implementada: núcleo operacional
 
 **Contexto:** PRD da Fase 1 recebido. 7 etapas executadas em sequência, cada uma com seu commit.

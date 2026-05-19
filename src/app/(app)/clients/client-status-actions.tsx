@@ -15,14 +15,16 @@ export function ClientStatusActions({
   status: ClientStatus;
 }) {
   const [pending, startTransition] = useTransition();
-  const isActive = status === "active";
+  const isArchived = status === "inactive";
 
   function toggle() {
     startTransition(async () => {
-      const target: ClientStatus = isActive ? "inactive" : "active";
+      const target: ClientStatus = isArchived ? "active" : "inactive";
       const result = await setClientStatus(id, target);
       if (result.ok) {
-        toast.success(isActive ? "Cliente inativado." : "Cliente reativado.");
+        toast.success(
+          isArchived ? "Cliente reativado (status ativo)." : "Cliente arquivado.",
+        );
       } else {
         toast.error(result.error);
       }
@@ -35,9 +37,14 @@ export function ClientStatusActions({
       size="sm"
       onClick={toggle}
       disabled={pending}
-      aria-label={isActive ? "Inativar cliente" : "Reativar cliente"}
+      aria-label={isArchived ? "Reativar cliente" : "Arquivar cliente"}
+      title={isArchived ? "Reativar" : "Arquivar"}
     >
-      {isActive ? <Archive className="size-3.5" /> : <ArchiveRestore className="size-3.5" />}
+      {isArchived ? (
+        <ArchiveRestore className="size-3.5" />
+      ) : (
+        <Archive className="size-3.5" />
+      )}
     </Button>
   );
 }

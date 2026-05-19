@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abrir Hub Estúdio 33</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0B10;
+      --card: #14161D;
+      --border: rgba(255,255,255,0.1);
+      --text: #F0F0F2;
+      --muted: #8B8E96;
+      --grad: linear-gradient(90deg,#FFBD00,#FF5400,#FF0054,#C52AAF,#5C28DB,#2D79E6);
+      --ok: #22C55E;
+      --warn: #F59E0B;
+      --err: #EF4444;
+    }
+    body {
+      font-family: 'Geist', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .stripe { height: 4px; background: var(--grad); }
+  body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(ellipse 50% 40% at 20% 0%, rgba(92,40,219,.2), transparent),
+        radial-gradient(ellipse 40% 30% at 90% 100%, rgba(45,121,230,.15), transparent);
+    }
+    .wrap { max-width: 520px; margin: 0 auto; padding: 32px 20px 48px; }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .sub { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; }
+    .status {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--muted); flex-shrink: 0;
+    }
+    .dot.ok { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+    .dot.err { background: var(--err); }
+    .dot.wait { background: var(--warn); animation: pulse 1.2s infinite; }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+    .btn {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 18px 20px; margin-bottom: 12px;
+      border-radius: 14px; border: 1px solid var(--border);
+      background: var(--card); color: var(--text);
+      text-decoration: none; font-size: 1.05rem; font-weight: 600;
+      transition: border-color .15s, transform .1s;
+      cursor: pointer;
+    }
+    .btn:hover { border-color: rgba(255,255,255,.25); transform: translateY(-1px); }
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(92,40,219,.35), rgba(255,0,84,.2));
+      border-color: rgba(197,42,175,.4);
+    }
+    .btn span.hint { font-size: 0.75rem; font-weight: 400; color: var(--muted); font-family: 'Geist Mono', monospace; }
+    .btn .arrow { color: var(--muted); font-size: 1.25rem; }
+    section { margin-top: 32px; }
+    section h2 {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--muted); margin-bottom: 12px; font-family: 'Geist Mono', monospace;
+    }
+    ol {
+      padding-left: 1.2rem; color: var(--muted); font-size: 0.88rem;
+    }
+    ol li { margin-bottom: 8px; }
+    ol strong { color: var(--text); font-weight: 600; }
+    code {
+      font-family: 'Geist Mono', monospace; font-size: 0.8rem;
+      background: rgba(255,255,255,.06); padding: 2px 6px; border-radius: 4px;
+    }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .links a {
+      font-size: 0.8rem; color: #BFA9F5; text-decoration: none;
+      padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
+    }
+    .links a:hover { background: rgba(255,255,255,.04); }
+    .foot { margin-top: 40px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="stripe"></div>
+  <div class="wrap">
+    <h1>Hub Estúdio 33</h1>
+    <p class="sub" style="background:rgba(255,189,0,.12);border:1px solid rgba(255,189,0,.35);padding:12px 14px;border-radius:10px;color:#FCD34D;margin-bottom:20px;">
+      ⚠️ <strong>Isto NÃO é o sistema.</strong> É só um atalho. O Hub de verdade (com sua identidade visual) abre no link abaixo — use Chrome ou Safari, não o preview do Cursor.
+    </p>
+
+    <div class="status" id="status">
+      <span class="dot wait" id="dot"></span>
+      <span id="statusText">Verificando se o app está rodando…</span>
+    </div>
+
+    <a class="btn primary" id="btnLogin" href="http://127.0.0.1:3333/login" target="_blank" rel="noopener">
+      Abrir o Hub de verdade (login)
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="btn" href="http://127.0.0.1:3333/dashboard" target="_blank" rel="noopener">
+      Dashboard
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="btn" href="http://127.0.0.1:3333/projects" target="_blank" rel="noopener">
+      Projetos
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="btn" href="http://127.0.0.1:3333/schedule" target="_blank" rel="noopener">
+      Cronograma (Gantt)
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="btn" href="http://127.0.0.1:3333/clients" target="_blank" rel="noopener">
+      Clientes
+      <span class="arrow">→</span>
+    </a>
+
+    <section>
+      <h2>Se não abrir</h2>
+      <ol>
+        <li>Abra o <strong>Terminal</strong> no Cursor (menu Terminal → Novo terminal).</li>
+        <li>Cole e aperte Enter:<br /><code>npm run dev</code></li>
+        <li>Volte aqui e clique em <strong>Entrar no Hub</strong> de novo.</li>
+        <li>Login: e-mail e senha criados no <strong>Supabase → Authentication → Users</strong>.</li>
+      </ol>
+      <div class="links">
+        <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">Painel Supabase</a>
+        <a href="http://127.0.0.1:3333/login">Link direto (copiar)</a>
+      </div>
+    </section>
+
+    <p class="foot">Arquivo local · não precisa de internet (só o app em localhost)</p>
+  </div>
+
+  <script>
+    const ports = [3333, 3030, 3000];
+    const dot = document.getElementById('dot');
+    const statusText = document.getElementById('statusText');
+    const btnLogin = document.getElementById('btnLogin');
+
+    function checkPort(port) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const t = setTimeout(() => resolve(false), 2000);
+        img.onload = img.onerror = () => {
+          clearTimeout(t);
+          resolve(true);
+        };
+        img.src = 'http://localhost:' + port + '/favicon.ico?t=' + Date.now();
+      });
+    }
+
+    async function findServer() {
+      for (const port of ports) {
+        const up = await checkPort(port);
+        if (up) return port;
+      }
+      return null;
+    }
+
+    function setLinks(port) {
+      const base = 'http://localhost:' + port;
+      document.querySelectorAll('a.btn').forEach((a) => {
+        const path = a.getAttribute('href').replace(/^http:\/\/localhost:\d+/, '');
+        a.href = base + path;
+      });
+    }
+
+    (async () => {
+      const port = await findServer();
+      if (port) {
+        dot.className = 'dot ok';
+        statusText.textContent = 'App rodando na porta ' + port + ' — pode clicar nos botões.';
+        setLinks(port);
+      } else {
+        dot.className = 'dot err';
+        statusText.textContent = 'App parado — rode npm run dev no Terminal do Cursor.';
+        btnLogin.style.opacity = '0.6';
+      }
+    })();
+  </script>
+</body>
+</html>

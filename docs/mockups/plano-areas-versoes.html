@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hub E33 — 3 versões: áreas, fases e horas por entregável</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --font: 'Geist', system-ui, sans-serif;
+      --mono: 'Geist Mono', monospace;
+      --bg: #0A0B10;
+      --border: rgba(255,255,255,0.08);
+      --text: #F0F0F2;
+      --muted: #8B8E96;
+      --b-orange: #FF5400;
+      --b-purple: #5C28DB;
+      --b-blue: #2D79E6;
+      --success: #22C55E;
+      --warning: #F59E0B;
+      --grad: linear-gradient(90deg,#FFBD00,#FF5400,#FF0054,#C52AAF,#5C28DB,#2D79E6);
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 2rem 1.5rem 4rem;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 600px 400px at 10% 0%, rgba(92,40,219,0.14), transparent 60%),
+        radial-gradient(ellipse 500px 400px at 90% 20%, rgba(45,121,230,0.1), transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+    .stripe { height: 3px; background: var(--grad); border-radius: 2px; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .lead { color: var(--muted); max-width: 54rem; margin-bottom: 2.5rem; }
+    .version {
+      margin-bottom: 3.5rem;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(14,16,24,0.92);
+    }
+    .version-head {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .version-head h2 { font-size: 1.1rem; }
+    .tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(92,40,219,0.25);
+      color: #c4b5fd;
+    }
+    .version-note {
+      padding: 0 1.25rem 1rem;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .mock { padding: 0 1rem 1.25rem; }
+    .proj-badge {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      padding: 0 0.25rem;
+    }
+    .proj-badge strong { color: var(--text); font-weight: 500; }
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.data th, table.data td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    table.data th {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      background: rgba(0,0,0,0.25);
+    }
+    .phase-row td {
+      background: rgba(92,40,219,0.1);
+      font-weight: 600;
+      font-size: 11px;
+    }
+    .sub td:first-child { padding-left: 1.5rem; color: var(--muted); }
+    .sub td:first-child::before { content: '↳ '; color: var(--b-orange); }
+    .pill {
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 7px;
+      border-radius: 99px;
+      display: inline-block;
+    }
+    .pill-done { background: rgba(34,197,94,0.2); color: var(--success); }
+    .pill-prog { background: rgba(245,158,11,0.2); color: var(--warning); }
+    .pill-todo { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .pill-area {
+      background: rgba(45,121,230,0.15);
+      color: #93c5fd;
+      margin-right: 4px;
+    }
+    input.hours {
+      width: 56px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.3);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-align: right;
+    }
+    .total-row td {
+      font-weight: 600;
+      background: rgba(255,255,255,0.03);
+      border-top: 1px solid var(--border);
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 800px) { .kpi-row { grid-template-columns: 1fr 1fr; } }
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.2);
+    }
+    .kpi label {
+      font-family: var(--mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .kpi strong { display: block; font-size: 1.25rem; margin-top: 2px; }
+    .areas-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+    .area-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      font-size: 12px;
+    }
+    .area-chip input { accent-color: var(--b-purple); }
+    .area-chip.on { border-color: rgba(92,40,219,0.4); background: rgba(92,40,219,0.12); }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .tab {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      background: transparent;
+    }
+    .tab.active {
+      background: var(--b-purple);
+      color: #fff;
+      border-color: transparent;
+    }
+    .split {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 12px;
+      min-height: 360px;
+    }
+    @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .panel-head {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .panel-body { padding: 10px; }
+    .area-list { list-style: none; }
+    .area-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+    }
+    .area-list li:last-child { border-bottom: none; }
+    .cards-v3 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 700px) { .cards-v3 { grid-template-columns: 1fr; } }
+    .area-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .area-card-head {
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .area-card-head h4 { font-size: 13px; }
+    .area-card-head span { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding: 0 1.25rem 1.25rem;
+      font-size: 12px;
+    }
+    .pros-cons h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .pros-cons ul { padding-left: 1.1rem; color: var(--muted); }
+    .pros-cons li { margin-bottom: 0.2rem; }
+    .pick { color: var(--b-orange); font-weight: 500; }
+    code { font-family: var(--mono); font-size: 11px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stripe"></div>
+    <h1>3 versões — Áreas, fases e horas por entregável</h1>
+    <p class="lead">
+      Propostas para a nova aba/seção do projeto: <strong>áreas E33 envolvidas</strong>,
+      <strong>fases e etapas</strong> ligadas ao cronograma, e <strong>estimativa de horas</strong> em cada entregável.
+      Exemplo: <strong>[DEMO] Identidade visual — Luna Moda</strong>.
+      Abra este arquivo no navegador (duplo clique).
+    </p>
+
+    <!-- VERSÃO 1 -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Versão 1 — Plano mestre (tabela única)</h2>
+        <span class="tag">Recomendada para o Hub</span>
+      </div>
+      <p class="version-note">
+        No topo: chips das áreas envolvidas. Abaixo: uma tabela por fase com etapas do cronograma,
+        entregáveis e coluna editável de horas. Total por fase e total do projeto no rodapé.
+      </p>
+      <div class="mock">
+        <p class="proj-badge"><strong>[DEMO] Identidade visual — Luna Moda</strong> · Área principal: Identidade visual</p>
+
+        <p style="font-family:var(--mono);font-size:9px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Áreas envolvidas no projeto</p>
+        <div class="areas-grid">
+          <label class="area-chip on"><input type="checkbox" checked /> Identidade visual</label>
+          <label class="area-chip on"><input type="checkbox" checked /> Branding / estratégia</label>
+          <label class="area-chip"><input type="checkbox" /> Produção de conteúdo</label>
+          <label class="area-chip"><input type="checkbox" /> Soluções digitais — design</label>
+          <label class="area-chip"><input type="checkbox" /> Soluções digitais — DEV</label>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi"><label>Horas estimadas</label><strong>48h</strong></div>
+          <div class="kpi"><label>Horas registradas</label><strong>22h</strong></div>
+          <div class="kpi"><label>Entregáveis</label><strong>8</strong></div>
+          <div class="kpi"><label>Fase atual</label><strong style="font-size:14px">Produção</strong></div>
+        </div>
+
+        <div class="panel">
+          <table class="data">
+            <thead>
+              <tr>
+                <th>Fase / etapa / entregável</th>
+                <th>Área</th>
+                <th>Status</th>
+                <th style="text-align:right">Horas est.</th>
+                <th style="text-align:right">Horas reais</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="phase-row"><td colspan="5">Planejamento</td></tr>
+              <tr>
+                <td>Briefing e pesquisa</td>
+                <td><span class="pill pill-area">Branding</span></td>
+                <td><span class="pill pill-done">concluída</span></td>
+                <td style="text-align:right">—</td>
+                <td style="text-align:right;font-family:var(--mono)">6h</td>
+              </tr>
+              <tr class="sub">
+                <td>Mapa de referências (PDF)</td>
+                <td><span class="pill pill-area">Branding</span></td>
+                <td><span class="pill pill-done">aprovado</span></td>
+                <td style="text-align:right"><input class="hours" type="text" value="4" /></td>
+                <td style="text-align:right;font-family:var(--mono)">3h</td>
+              </tr>
+              <tr class="phase-row"><td colspan="5">Produção</td></tr>
+              <tr>
+                <td>Refinamento e sistema</td>
+                <td><span class="pill pill-area">Identidade</span></td>
+                <td><span class="pill pill-prog">em andamento</span></td>
+                <td style="text-align:right">—</td>
+                <td style="text-align:right;font-family:var(--mono)">12h</td>
+              </tr>
+              <tr class="sub">
+                <td>Manual da marca (PDF)</td>
+                <td><span class="pill pill-area">Identidade</span></td>
+                <td><span class="pill pill-prog">revisão interna</span></td>
+                <td style="text-align:right"><input class="hours" type="text" value="16" /></td>
+                <td style="text-align:right;font-family:var(--mono)">8h</td>
+              </tr>
+              <tr class="sub">
+                <td>Pacote logos (SVG + PNG)</td>
+                <td><span class="pill pill-area">Identidade</span></td>
+                <td><span class="pill pill-todo">rascunho</span></td>
+                <td style="text-align:right"><input class="hours" type="text" value="12" /></td>
+                <td style="text-align:right;font-family:var(--mono)">—</td>
+              </tr>
+              <tr class="sub">
+                <td>Paleta e tipografia (Figma)</td>
+                <td><span class="pill pill-area">Identidade</span></td>
+                <td><span class="pill pill-todo">rascunho</span></td>
+                <td style="text-align:right"><input class="hours" type="text" value="8" /></td>
+                <td style="text-align:right;font-family:var(--mono)">—</td>
+              </tr>
+              <tr class="phase-row"><td colspan="5">Entrega</td></tr>
+              <tr>
+                <td>Entrega final ao cliente</td>
+                <td><span class="pill pill-area">Identidade</span></td>
+                <td><span class="pill pill-todo">marco</span></td>
+                <td style="text-align:right"><input class="hours" type="text" value="2" /></td>
+                <td style="text-align:right;font-family:var(--mono)">—</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="3">Total do projeto</td>
+                <td style="text-align:right;font-family:var(--mono)">42h</td>
+                <td style="text-align:right;font-family:var(--mono)">22h</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div>
+          <h4>Vantagens</h4>
+          <ul>
+            <li>Tudo visível numa tela: áreas, fases, horas</li>
+            <li>Alinha com cronograma e entregáveis existentes</li>
+            <li class="pick">Melhor para orçamento e controle de tempo</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Atenção</h4>
+          <ul>
+            <li>Tabela longa em projetos grandes</li>
+            <li>Precisa scroll horizontal em mobile</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- VERSÃO 2 -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Versão 2 — Split: áreas à esquerda + abas por fase</h2>
+        <span class="tag">Navegação por fase</span>
+      </div>
+      <p class="version-note">
+        Painel fixo com áreas envolvidas e totais de horas por área. À direita, abas por fase operacional;
+        em cada aba só os entregáveis e etapas daquela fase.
+      </p>
+      <div class="mock">
+        <p class="proj-badge"><strong>[DEMO] Identidade visual — Luna Moda</strong></p>
+        <div class="split">
+          <div class="panel">
+            <div class="panel-head">Áreas envolvidas</div>
+            <div class="panel-body">
+              <ul class="area-list">
+                <li><label><input type="checkbox" checked /> Identidade visual</label><span class="pill" style="font-family:var(--mono);color:var(--muted)">32h</span></li>
+                <li><label><input type="checkbox" checked /> Branding</label><span style="font-family:var(--mono);color:var(--muted)">10h</span></li>
+                <li><label><input type="checkbox" /> Conteúdo</label><span style="font-family:var(--mono);color:var(--muted)">—</span></li>
+                <li><label><input type="checkbox" /> Digital design</label><span style="font-family:var(--mono);color:var(--muted)">—</span></li>
+                <li><label><input type="checkbox" /> DEV</label><span style="font-family:var(--mono);color:var(--muted)">—</span></li>
+              </ul>
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+                <p style="font-size:11px;color:var(--muted)">Responsável E33</p>
+                <p style="font-size:12px;margin-top:4px">Danilo · Identidade + Branding</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="tabs">
+              <button type="button" class="tab">Planejamento</button>
+              <button type="button" class="tab active">Produção</button>
+              <button type="button" class="tab">Revisão</button>
+              <button type="button" class="tab">Entrega</button>
+            </div>
+            <div class="panel">
+              <div class="panel-head">Produção · 2 etapas · 4 entregáveis</div>
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Etapa (cronograma)</th>
+                    <th>Entregável</th>
+                    <th>Área</th>
+                    <th style="text-align:right">Horas est.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Refinamento e sistema</td>
+                    <td>—</td>
+                    <td>Identidade</td>
+                    <td style="text-align:right">—</td>
+                  </tr>
+                  <tr class="sub">
+                    <td></td>
+                    <td>Manual da marca</td>
+                    <td>Identidade</td>
+                    <td style="text-align:right"><input class="hours" value="16" /></td>
+                  </tr>
+                  <tr class="sub">
+                    <td></td>
+                    <td>Pacote logos</td>
+                    <td>Identidade</td>
+                    <td style="text-align:right"><input class="hours" value="12" /></td>
+                  </tr>
+                  <tr class="sub">
+                    <td></td>
+                    <td>Paleta Figma</td>
+                    <td>Identidade</td>
+                    <td style="text-align:right"><input class="hours" value="8" /></td>
+                  </tr>
+                  <tr class="total-row">
+                    <td colspan="3">Subtotal fase</td>
+                    <td style="text-align:right;font-family:var(--mono)">36h</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div>
+          <h4>Vantagens</h4>
+          <ul>
+            <li>Menos sobrecarga visual por fase</li>
+            <li>Áreas sempre visíveis na lateral</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Atenção</h4>
+          <ul>
+            <li>Precisa trocar aba para ver outras fases</li>
+            <li>Total geral menos óbvio</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- VERSÃO 3 -->
+    <section class="version">
+      <div class="version-head">
+        <h2>Versão 3 — Cards por área E33</h2>
+        <span class="tag">Visão por disciplina</span>
+      </div>
+      <p class="version-note">
+        Cada área E33 é um card com suas etapas e entregáveis. Horas estimadas por item e subtotal por card.
+        Bom quando o projeto é híbrido (várias disciplinas ao mesmo tempo).
+      </p>
+      <div class="mock">
+        <p class="proj-badge"><strong>[DEMO] Identidade visual — Luna Moda</strong> · Projeto híbrido leve</p>
+        <div class="kpi-row">
+          <div class="kpi"><label>Áreas ativas</label><strong>2</strong></div>
+          <div class="kpi"><label>Horas orçadas</label><strong>48h</strong></div>
+          <div class="kpi"><label>% consumido</label><strong>46%</strong></div>
+          <div class="kpi"><label>Entregáveis pendentes</label><strong>3</strong></div>
+        </div>
+        <div class="cards-v3">
+          <div class="area-card">
+            <div class="area-card-head">
+              <h4>Branding / estratégia</h4>
+              <span>10h est. · 6h reais</span>
+            </div>
+            <table class="data">
+              <thead>
+                <tr><th>Fase</th><th>Item</th><th style="text-align:right">h est.</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Planej.</td><td>Briefing</td><td style="text-align:right">—</td></tr>
+                <tr><td>Planej.</td><td>Mapa referências</td><td style="text-align:right"><input class="hours" value="4" /></td></tr>
+                <tr><td>Planej.</td><td>Conceito criativo</td><td style="text-align:right">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="area-card" style="border-color:rgba(92,40,219,0.35)">
+            <div class="area-card-head">
+              <h4>Identidade visual</h4>
+              <span>38h est. · 16h reais</span>
+            </div>
+            <table class="data">
+              <thead>
+                <tr><th>Fase</th><th>Item</th><th style="text-align:right">h est.</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Produção</td><td>Manual da marca</td><td style="text-align:right"><input class="hours" value="16" /></td></tr>
+                <tr><td>Produção</td><td>Logos SVG/PNG</td><td style="text-align:right"><input class="hours" value="12" /></td></tr>
+                <tr><td>Produção</td><td>Paleta Figma</td><td style="text-align:right"><input class="hours" value="8" /></td></tr>
+                <tr><td>Entrega</td><td>Handoff final</td><td style="text-align:right"><input class="hours" value="2" /></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="area-card" style="opacity:0.45">
+            <div class="area-card-head">
+              <h4>Produção de conteúdo</h4>
+              <span>não envolvida</span>
+            </div>
+            <p style="padding:16px;font-size:12px;color:var(--muted)">Marque a área acima para incluir entregáveis.</p>
+          </div>
+          <div class="area-card" style="opacity:0.45">
+            <div class="area-card-head">
+              <h4>Soluções digitais</h4>
+              <span>não envolvida</span>
+            </div>
+            <p style="padding:16px;font-size:12px;color:var(--muted)">Design e DEV em cards separados quando ativos.</p>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div>
+          <h4>Vantagens</h4>
+          <ul>
+            <li>Claro em projetos com várias áreas E33</li>
+            <li>Orçamento por disciplina fica explícito</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Atenção</h4>
+          <ul>
+            <li>Fases ficam repetidas em cada card</li>
+            <li>Menos linear que cronograma único</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <p style="color:var(--muted);font-size:12px;margin-top:1rem;">
+      Arquivo: <code>docs/mockups/plano-areas-versoes.html</code> —
+      Campos novos sugeridos: <code>deliverables.estimated_hours</code>, tabela <code>project_areas</code> (áreas envolvidas).
+    </p>
+  </div>
+</body>
+</html>

@@ -46,7 +46,7 @@ supabase db push
 - Password: crie uma senha forte
 - ✅ Auto Confirm User (pra não precisar de e-mail de confirmação)
 
-Não há tela de signup público — todo usuário é criado manualmente aqui. (Na Fase 3, vamos criar usuários "cliente" pelo admin.)
+Não há signup público. **Admin:** crie aqui no painel Auth. **Clientes:** use **Convidar ao portal** na ficha do cliente no Hub (requer `SUPABASE_SERVICE_ROLE_KEY` + Resend).
 
 ## Gerar types do TypeScript (opcional)
 
@@ -61,3 +61,26 @@ Por enquanto, mantemos um types manual em `src/types/database.ts` alinhado com o
 ## Migrations futuras
 
 Cada nova migration entra em `supabase/migrations/` com timestamp no nome (`YYYYMMDDHHMMSS_descrição.sql`). A ordem alfabética é a ordem de aplicação.
+
+## Dados demo (panorama)
+
+Para popular o sistema com clientes e projetos fictícios em **todas as áreas E33**:
+
+1. SQL Editor → cole e execute `supabase/migrations/20260519120000_demo_panorama_seed.sql`
+2. No app: filtre clientes/projetos pelo prefixo **`[DEMO]`**
+3. Reexecutar o mesmo arquivo **apaga e recria** os demos (não mexe no resto)
+
+**O que vem no pacote:**
+
+| Item | Quantidade |
+|------|------------|
+| Clientes (prospect, ativo, pausa, encerrado) | 8 |
+| Projetos (branding, identity, content, web_design, web_dev, hybrid, concluído) | 7 |
+| Cronograma + entregáveis (vários status) | por projeto |
+| Tarefas Kanban, custos, horas, links | amostras |
+
+**Testar o portal do cliente (opcional):**
+
+1. Abra o cliente `[DEMO] Luna Moda` no Hub
+2. Clique em **Convidar ao portal** (e-mail do cadastro)
+3. Use o link do e-mail → defina senha → `/portal`

@@ -92,6 +92,7 @@
     position: sticky; top: 3px; z-index: 99;
   }
   .nav-brand { display: flex; align-items: center; gap: 10px; }
+  .nav-brand { text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;cursor:pointer; }
   .nav-brand svg { display: block; height: 26px; width: auto; }
   .nav-brand .v {
     font-family: var(--mono); font-size: 10px; font-weight: 600;
@@ -278,6 +279,14 @@
     mask-composite: exclude;
     pointer-events: none;
   }
+  /* Financeiro: glass com toque amarelo (não compete com o card roxo de foco) */
+  .card-finance {
+    background: linear-gradient(165deg, rgba(255,189,0,0.07) 0%, rgba(255,255,255,0.04) 42%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,189,0,0.14);
+  }
+  .card-finance::before {
+    background: linear-gradient(135deg, rgba(255,189,0,0.2), rgba(255,255,255,0.04));
+  }
   .card-solid {
     border-radius: var(--r-3xl);
     padding: 22px;
@@ -443,15 +452,17 @@
   .row2-projeto     { grid-column: span 3; min-height: 280px; padding: 0; overflow: hidden; display: flex; flex-direction: column; }
   .row2-nextrun     { grid-column: span 3; min-height: 280px; display: flex; flex-direction: column; justify-content: space-between; }
 
-  /* Bar chart (yellow card) */
+  /* Bar chart (card financeiro — glass) */
+  .card-finance .card-eyebrow { color: rgba(255,255,255,0.65); }
+  .card-finance .card-title { color: var(--text); }
   .chart-months {
     display: flex; justify-content: space-between;
     font-family: var(--mono); font-size: 9px;
-    color: rgba(0,0,0,0.6); letter-spacing: 0.04em;
+    color: var(--muted); letter-spacing: 0.04em;
     text-transform: uppercase;
     margin-top: 16px; margin-bottom: 8px;
   }
-  .chart-months .now { color: #1a1a1a; font-weight: 700; }
+  .card-finance .chart-months .now { color: var(--b-yellow); font-weight: 700; }
   .chart-bars {
     display: grid; grid-template-columns: repeat(12, 1fr);
     gap: 4px;
@@ -459,35 +470,41 @@
     margin-bottom: 16px;
   }
   .chart-bars .bar { border-radius: var(--r-pill); }
-  .chart-bars .bar.now {
-    background: white;
-    border: 1px solid rgba(0,0,0,0.18);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  .card-finance .chart-bars .bar.now {
+    background: linear-gradient(180deg, #FFBD00 0%, #C99500 100%);
+    border: 1px solid rgba(255,189,0,0.45);
+    box-shadow: 0 4px 14px rgba(255,189,0,0.25);
   }
-  .chart-bars .bar.past { background: rgba(0,0,0,0.42); }
-  .chart-bars .bar.future { background: rgba(0,0,0,0.18); }
-  .chart-summary {
+  .card-finance .chart-bars .bar.past { background: rgba(255,189,0,0.28); }
+  .card-finance .chart-bars .bar.future { background: rgba(255,255,255,0.07); }
+  .card-finance .chart-summary {
     display: flex; justify-content: space-between;
     align-items: center;
     padding-top: 14px;
-    border-top: 1px solid rgba(0,0,0,0.16);
+    border-top: 1px solid var(--border);
   }
-  .chart-summary .current-block .lbl {
-    font-size: 10px; color: rgba(0,0,0,0.6);
+  .card-finance .chart-summary .current-block .lbl {
+    font-size: 10px; color: var(--muted);
     margin-bottom: 4px; font-family: var(--mono);
     text-transform: uppercase; letter-spacing: 0.08em;
   }
-  .chart-pill {
-    background: rgba(0,0,0,0.1);
-    border: 1px solid rgba(0,0,0,0.18);
-    color: #1a1a1a;
+  .card-finance .chart-pill {
+    background: rgba(255,189,0,0.1);
+    border: 1px solid rgba(255,189,0,0.22);
+    color: var(--text);
     padding: 6px 14px; border-radius: var(--r-pill);
     font-size: 12px; font-weight: 600;
     display: inline-flex; align-items: center; gap: 6px;
   }
-  .chart-summary .target { text-align: right; }
-  .chart-summary .target .lbl { font-size: 10px; color: rgba(0,0,0,0.6); font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; }
-  .chart-summary .target .val { font-family: var(--mono); font-size: 22px; font-weight: 700; line-height: 1.1; }
+  .card-finance .chart-summary .target { text-align: right; }
+  .card-finance .chart-summary .target .lbl {
+    font-size: 10px; color: var(--muted); font-family: var(--mono);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .card-finance .chart-summary .target .val {
+    font-family: var(--mono); font-size: 22px; font-weight: 700;
+    line-height: 1.1; color: var(--text);
+  }
 
   /* Project hero card (image + content) */
   .proj-hero-img {
@@ -944,6 +961,34 @@
   .pipe-card-meta .danger { color: var(--danger); }
 
   /* ─── FLOATING TAG ─── */
+  /* Navegação entre telas do mockup */
+  .mock-view { display: none; }
+  .mock-view.active { display: block; }
+  .mock-placeholder-page { max-width: 640px; padding: 8px 0 48px; }
+  .mock-placeholder-page h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .mock-placeholder-page p { color: var(--text-2); line-height: 1.6; margin-bottom: 20px; }
+  .mock-links { display: flex; flex-wrap: wrap; gap: 10px; }
+  .mock-links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 16px; border-radius: var(--r-pill);
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); text-decoration: none; font-size: 13px;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .mock-links a:hover { border-color: var(--b-orange); color: var(--b-orange); }
+  .mock-links a.primary { background: var(--b-purple); border-color: transparent; color: white; }
+  .mock-toast {
+    position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+    background: #14161D; border: 1px solid var(--border);
+    padding: 10px 18px; border-radius: var(--r-pill);
+    font-family: var(--mono); font-size: 11px; color: var(--text-2);
+    z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+  .mock-toast.show { opacity: 1; }
+  html { scroll-behavior: smooth; }
+  #projetos-ativos { scroll-margin-top: 88px; }
+
   .tag-float {
     position: fixed; bottom: 16px; right: 16px;
     background: rgba(20,22,29,0.92);
@@ -969,7 +1014,7 @@
 <div class="brand-stripe"></div>
 
 <nav class="topnav">
-  <div class="nav-brand">
+  <a class="nav-brand" href="#" data-nav="dashboard" title="Dashboard">
     <!-- Logo Estúdio 33 (versão light — wordmark branca pra dark) -->
     <svg viewBox="0 0 402 144" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Estúdio 33">
       <path d="M55.4628 50.4639L26.8882 50.4026V64.3166H55.3334V68.9764H26.8921V84.0219H55.4667V89.2492H21.5488V45.179H55.4628V50.4677V50.4639Z" fill="#F0F0F2"/>
@@ -991,7 +1036,7 @@
       </defs>
     </svg>
     <span class="v">Hub</span>
-  </div>
+  </a>
 
   <div class="cmdbar">
     <span class="ico">⌕</span>
@@ -1010,27 +1055,27 @@
 
   <aside class="sidebar">
     <div class="nav-group">
-      <a class="nav-item active">
+      <a class="nav-item active" href="#" data-nav="dashboard">
         <span class="nav-item-l"><span class="nav-dot d-cockpit"></span> Dashboard</span>
         <span class="kbd">G D</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="atendimento">
         <span class="nav-item-l"><span class="nav-dot d-atend"></span> Atendimento</span>
         <span class="nav-count">3</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="projetos">
         <span class="nav-item-l"><span class="nav-dot d-pipe"></span> Projetos</span>
         <span class="nav-count">7</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="gantt-versoes.html">
         <span class="nav-item-l"><span class="nav-dot d-cron"></span> Cronograma</span>
         <span class="kbd">G G</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="entregaveis">
         <span class="nav-item-l"><span class="nav-dot d-entreg"></span> Entregáveis</span>
         <span class="nav-count">4</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="clientes">
         <span class="nav-item-l"><span class="nav-dot d-criacao"></span> Clientes</span>
         <span class="nav-count">12</span>
       </a>
@@ -1038,20 +1083,20 @@
 
     <div class="nav-group">
       <div class="nav-label">Estúdio</div>
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="financeiro">
         <span class="nav-item-l"><span class="nav-dot d-adm"></span> Financeiro</span>
         <span class="kbd">G F</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="acervo">
         <span class="nav-item-l"><span class="nav-dot d-acervo"></span> Acervo</span>
       </a>
-      <a class="nav-item">
+      <a class="nav-item" href="profissionais-banco-prompts-versoes.html">
         <span class="nav-item-l"><span class="nav-dot d-prompt"></span> Prompts</span>
       </a>
     </div>
 
     <div class="nav-group" style="margin-top: auto;">
-      <a class="nav-item">
+      <a class="nav-item" href="#" data-nav="config">
         <span class="nav-item-l"><span>⚙</span> Configurações</span>
         <span class="kbd">,</span>
       </a>
@@ -1059,6 +1104,8 @@
   </aside>
 
   <main>
+
+    <div id="view-dashboard" class="mock-view active">
 
     <div class="hero">
       <span class="kicker">Dashboard · Quinta-feira · 18 maio 2026</span>
@@ -1151,14 +1198,14 @@
         </div>
       </section>
 
-      <!-- ROW 2: faturamento (yellow sólido) + projeto destaque + próxima atividade -->
-      <section class="card-solid card-yellow row2-faturamento">
+      <!-- ROW 2: faturamento (glass + acento amarelo) + projeto destaque + próxima atividade -->
+      <section class="card-glass card-finance row2-faturamento">
         <div class="card-head-row">
           <div>
             <div class="card-eyebrow">Faturamento · Histórico anual</div>
             <h3 class="card-title">Receita do estúdio em 2026</h3>
           </div>
-          <button class="pill-mini-btn" style="background: rgba(0,0,0,0.12); border-color: rgba(0,0,0,0.2); color: #1a1a1a;">⟳</button>
+          <button class="pill-mini-btn">⟳</button>
         </div>
         <div class="chart-months">
           <span>jan</span><span>fev</span><span>mar</span><span>abr</span><span class="now">mai</span><span>jun</span><span>jul</span><span>ago</span><span>set</span><span>out</span><span>nov</span><span>dez</span>
@@ -1296,8 +1343,8 @@
 
     </div>
 
-    <!-- ═══ PROJETOS ATIVOS — linhas pill coloridas (Aura-style) ═══ -->
-    <div class="section-head">
+    <!-- PROJETOS ATIVOS — linhas pill coloridas (Aura-style) ═══ -->
+    <div id="projetos-ativos" class="section-head">
       <h2>Projetos ativos</h2>
       <div class="filter-chips">
         <span class="chip active">Todos · 7</span>
@@ -1436,7 +1483,7 @@
       <section class="card-glass gantt-card">
         <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;">
           <h2 style="font-size: 17px; font-weight: 600;">Cronograma — próximas atividades</h2>
-          <a class="link-action">Abrir Gantt →</a>
+          <a class="link-action" href="gantt-versoes.html">Abrir Gantt →</a>
         </div>
         <div class="gantt-scale">
           <div></div>
@@ -1551,11 +1598,137 @@
 
     </div>
 
+    </div>
+
+    <div id="view-atendimento" class="mock-view">
+      <div class="mock-placeholder-page card-glass" style="padding:28px;border-radius:var(--r-3xl)">
+        <h2>Atendimento</h2>
+        <p>Leads, propostas e follow-ups. Tela em construção no app.</p>
+        <div class="mock-links"><a href="#" data-nav="dashboard" class="primary">← Dashboard</a></div>
+      </div>
+    </div>
+
+    <div id="view-entregaveis" class="mock-view">
+      <div class="mock-placeholder-page card-glass" style="padding:28px;border-radius:var(--r-3xl)">
+        <h2>Entregáveis</h2>
+        <p>Versões e aprovações do cliente. No app: aba Entregáveis em cada projeto.</p>
+        <div class="mock-links">
+          <a href="#" data-nav="dashboard" class="primary">← Dashboard</a>
+          <a href="portal-cliente.html">Portal do cliente</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-clientes" class="mock-view">
+      <div class="mock-placeholder-page card-glass" style="padding:28px;border-radius:var(--r-3xl)">
+        <h2>Clientes</h2>
+        <p>Cadastro, portal e domínios. No dashboard: pipeline à direita do Gantt.</p>
+        <div class="mock-links">
+          <a href="#" data-nav="projetos" class="primary">Ver projetos</a>
+          <a href="portal-cliente.html">Portal do cliente</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-financeiro" class="mock-view">
+      <div class="mock-placeholder-page card-glass" style="padding:28px;border-radius:var(--r-3xl)">
+        <h2>Financeiro</h2>
+        <p>Orçado × realizado. No menu Dashboard, card “Receita do estúdio” (2ª linha).</p>
+        <div class="mock-links"><a href="#" data-nav="dashboard" class="primary">← Ir ao dashboard</a></div>
+      </div>
+    </div>
+
+    <div id="view-acervo" class="mock-view">
+      <div class="mock-placeholder-page card-glass" style="padding:28px;border-radius:var(--r-3xl)">
+        <h2>Acervo</h2>
+        <p>Arquivos e links por cliente. Em construção.</p>
+        <div class="mock-links"><a href="#" data-nav="dashboard" class="primary">← Dashboard</a></div>
+      </div>
+    </div>
+
+    <div id="view-config" class="mock-view">
+      <div class="mock-placeholder-page card-glass" style="padding:28px;border-radius:var(--r-3xl)">
+        <h2>Configurações</h2>
+        <p>Taxa horária e preferências do estúdio.</p>
+        <div class="mock-links">
+          <a href="profissionais-banco-prompts-versoes.html">Banco de prompts</a>
+          <a href="#" data-nav="dashboard" class="primary">← Dashboard</a>
+        </div>
+      </div>
+    </div>
+
   </main>
 
 </div>
 
-<div class="tag-float">Hub · E33 Dark</div>
+<div class="tag-float">Hub · E33 Dark · navegável</div>
+<div class="mock-toast" id="mock-toast" aria-live="polite"></div>
+
+<script>
+(function () {
+  var views = document.querySelectorAll(".mock-view");
+  var toast = document.getElementById("mock-toast");
+
+  function showToast(msg) {
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () {
+      toast.classList.remove("show");
+    }, 2200);
+  }
+
+  function setActiveNav(el) {
+    document.querySelectorAll(".sidebar .nav-item").forEach(function (n) {
+      n.classList.remove("active");
+    });
+    if (el) el.classList.add("active");
+  }
+
+  function showView(id, scrollTarget) {
+    views.forEach(function (v) {
+      v.classList.remove("active");
+    });
+    var view = document.getElementById("view-" + id);
+    if (view) view.classList.add("active");
+    if (scrollTarget) {
+      requestAnimationFrame(function () {
+        var el = document.getElementById(scrollTarget);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  document.querySelectorAll("[data-nav]").forEach(function (item) {
+    item.addEventListener("click", function (e) {
+      var nav = item.getAttribute("data-nav");
+      if (!nav) return;
+      e.preventDefault();
+      var navEl = item.classList.contains("nav-item")
+        ? item
+        : item.closest(".nav-item");
+      if (navEl) setActiveNav(navEl);
+      if (nav === "projetos") {
+        showView("dashboard", "projetos-ativos");
+        showToast("Projetos ativos no dashboard");
+        return;
+      }
+      if (nav === "financeiro") {
+        showView("dashboard");
+        var fin = document.querySelector(".row2-faturamento");
+        if (fin) fin.scrollIntoView({ behavior: "smooth", block: "center" });
+        showToast("Card de faturamento no dashboard");
+        return;
+      }
+      showView(nav);
+    });
+  });
+})();
+
+</script>
 
 </body>
 </html>

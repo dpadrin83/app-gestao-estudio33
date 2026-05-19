@@ -70,6 +70,99 @@ export const projectStatusLabels = {
 } as const;
 
 export const clientStatusLabels = {
+  prospect: "prospecto",
   active: "ativo",
-  inactive: "inativo",
+  paused: "em pausa",
+  closed: "encerrado",
+  inactive: "arquivado",
+} as const;
+
+export const clientCompanySizeLabels = {
+  micro: "micro",
+  small: "pequeno",
+  medium: "médio",
+  large: "grande",
+  other: "outro",
+} as const;
+
+export const activityPhaseLabels = {
+  planning: "planejamento",
+  production: "produção",
+  review: "revisão",
+  delivery: "entrega",
+  other: "outro",
+} as const;
+
+export const activityStatusLabels = {
+  not_started: "não iniciada",
+  in_progress: "em andamento",
+  completed: "concluída",
+  delayed: "atrasada",
+} as const;
+
+export const deliverableStatusLabels = {
+  draft: "rascunho",
+  internal_review: "revisão interna",
+  sent_to_client: "aguardando cliente",
+  approved: "aprovado",
+  rejected: "reprovado",
+} as const;
+
+export const deliverableTypeLabels = {
+  video: "vídeo",
+  design: "arte",
+  doc: "documento",
+  code: "código",
+  link: "link",
+} as const;
+
+export const paymentStatusLabels = {
+  to_invoice: "a faturar",
+  invoiced: "faturado",
+  received: "recebido",
+} as const;
+
+export const serviceLineLabels = {
+  branding: "Branding / estratégia",
+  identity: "Identidade visual",
+  content: "Produção de conteúdo",
+  web_design: "Soluções digitais — design",
+  web_dev: "Soluções digitais — DEV",
+  hybrid: "Projeto híbrido",
+} as const;
+
+export const projectLinkKindLabels = {
+  drive: "Google Drive",
+  figma: "Figma",
+  github: "GitHub",
+  doc: "Documento",
+  link: "Link",
+  other: "Outro",
+} as const;
+
+export const clientServiceKindLabels = {
+  domain_br: "Domínio .br",
+  domain: "Domínio",
+  hosting: "Hospedagem",
+  email: "E-mail profissional",
+  ssl: "SSL / certificado",
+  cdn: "CDN",
+  other: "Outro",
+} as const;
+
+export const clientServiceBillingCycleLabels = {
+  monthly: "mensal",
+  yearly: "anual",
+  other: "outro",
+} as const;
+
+export const taskStatusLabels = {
+  todo: "a fazer",
+  doing: "fazendo",
+  done: "feito",
+} as const;
+
+export const workItemTypeLabels = {
+  sub_etapa: "sub-etapa",
+  entregavel: "entregável",
 } as const;
