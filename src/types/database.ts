@@ -323,6 +323,23 @@ export interface DeliverableWithVersions extends Deliverable {
   comments: DeliverableComment[];
 }
 
+export interface DeliverableCatalogItem {
+  id: string;
+  name: string;
+  deliverable_type: DeliverableType;
+  estimated_days: number;
+  professional_id: string | null;
+  predecessor_id: string | null;
+  service_line: ServiceLine | null;
+  notes: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  professional?: { id: string; name: string } | null;
+  predecessor?: Pick<DeliverableCatalogItem, "id" | "name"> | null;
+}
+
 export interface DeliverablePlanItem {
   id: string;
   project_id: string;

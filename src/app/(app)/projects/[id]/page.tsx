@@ -29,6 +29,7 @@ import { ProjectTasksKanban } from "../project-tasks-kanban";
 import { ProjectDeliverables } from "../project-deliverables";
 import { ProjectDeliverablePlan } from "@/components/projects/project-deliverable-plan";
 import { getDeliverablePlan } from "@/lib/actions/deliverable-plan";
+import { listDeliverableCatalog } from "@/lib/actions/deliverable-catalog";
 import { listStudioProfessionals } from "@/lib/actions/project-macro-plan";
 import { ProjectTabs } from "@/components/projects/project-tabs";
 import { serviceLineLabels } from "@/lib/format";
@@ -65,6 +66,7 @@ export default async function ProjectDetailPage({
     activityFeed,
     projectLinks,
     deliverablePlan,
+    deliverableCatalog,
     studioProfessionals,
   ] = await Promise.all([
     listActiveClients(),
@@ -79,6 +81,7 @@ export default async function ProjectDetailPage({
     getProjectActivityFeed(id),
     listProjectLinks(id),
     getDeliverablePlan(id),
+    listDeliverableCatalog(),
     listStudioProfessionals(),
   ]);
 
@@ -198,6 +201,8 @@ export default async function ProjectDetailPage({
           projectId={project.id}
           items={deliverablePlan}
           professionals={studioProfessionals}
+          catalog={deliverableCatalog}
+          projectServiceLine={project.service_line ?? null}
           hasScheduleActivities={activities.length > 0}
         />
       </div>

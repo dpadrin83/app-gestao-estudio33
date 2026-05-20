@@ -48,6 +48,7 @@ const TABLES = [
   "client_services",
   "client_access",
   "project_deliverable_plan_items",
+  "studio_deliverable_catalog",
 ];
 
 async function main() {

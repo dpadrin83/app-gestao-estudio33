@@ -8,6 +8,7 @@ import {
   FolderKanban,
   GanttChart,
   Globe,
+  ListChecks,
   Wallet,
   Settings,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const items: Item[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, dot: "bg-[#E8E8E8]" },
   { href: "/clients",   label: "Clientes",  icon: Users,           dot: "bg-brand-orange" },
   { href: "/projects",  label: "Projetos",  icon: FolderKanban,    dot: "bg-brand-purple" },
+  { href: "/catalog/deliverables", label: "Catálogo", icon: ListChecks, dot: "bg-brand-purple/80" },
   { href: "/schedule",  label: "Cronograma", icon: GanttChart,     dot: "bg-brand-blue" },
   { href: "/services",  label: "Acessos",    icon: Globe,          dot: "bg-brand-pink" },
   { href: "/finance",   label: "Financeiro", icon: Wallet,         dot: "bg-brand-yellow" },

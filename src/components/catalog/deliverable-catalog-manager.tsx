@@ -4,9 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { Plus, Pencil, Trash2, GitBranch, Calendar } from "lucide-react";
-import { ImportCatalogDialog } from "@/components/projects/import-catalog-dialog";
+import { Plus, Pencil, Trash2, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,70 +25,69 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DeliverableStatusBadge } from "@/components/deliverable-status-badge";
 import {
-  DeliverablePlanItemSchema,
-  type DeliverablePlanItemFormValues,
-} from "@/lib/schemas/deliverable-plan";
+  DeliverableCatalogItemSchema,
+  type DeliverableCatalogItemFormValues,
+} from "@/lib/schemas/deliverable-catalog";
 import {
-  createDeliverablePlanItem,
-  updateDeliverablePlanItem,
-  deleteDeliverablePlanItem,
-  publishDeliverablePlanToSchedule,
-} from "@/lib/actions/deliverable-plan";
-import { deliverableTypeLabels } from "@/lib/format";
+  createDeliverableCatalogItem,
+  updateDeliverableCatalogItem,
+  deleteDeliverableCatalogItem,
+} from "@/lib/actions/deliverable-catalog";
+import {
+  deliverableTypeLabels,
+  serviceLineLabels,
+} from "@/lib/format";
 import type {
   DeliverableCatalogItem,
-  DeliverablePlanItem,
-  ServiceLine,
   StudioProfessional,
 } from "@/types/database";
 
 const types = Object.entries(deliverableTypeLabels) as [
-  DeliverablePlanItemFormValues["deliverable_type"],
+  DeliverableCatalogItemFormValues["deliverable_type"],
   string,
 ][];
 
-const emptyForm: DeliverablePlanItemFormValues = {
+const serviceLines = Object.entries(serviceLineLabels) as [
+  NonNullable<DeliverableCatalogItemFormValues["service_line"]>,
+  string,
+][];
+
+const emptyForm: DeliverableCatalogItemFormValues = {
   name: "",
   deliverable_type: "design",
   estimated_days: 3,
   professional_id: "",
   predecessor_id: "",
+  service_line: "",
   notes: "",
+  is_active: true,
 };
 
-function itemToForm(item: DeliverablePlanItem): DeliverablePlanItemFormValues {
+function itemToForm(item: DeliverableCatalogItem): DeliverableCatalogItemFormValues {
   return {
     name: item.name,
     deliverable_type: item.deliverable_type,
     estimated_days: item.estimated_days,
     professional_id: item.professional_id ?? "",
     predecessor_id: item.predecessor_id ?? "",
+    service_line: item.service_line ?? "",
     notes: item.notes ?? "",
+    is_active: item.is_active,
   };
 }
 
-export function ProjectDeliverablePlan({
-  projectId,
+export function DeliverableCatalogManager({
   items: initial,
   professionals,
-  catalog,
-  projectServiceLine,
-  hasScheduleActivities,
 }: {
-  projectId: string;
-  items: DeliverablePlanItem[];
+  items: DeliverableCatalogItem[];
   professionals: StudioProfessional[];
-  catalog: DeliverableCatalogItem[];
-  projectServiceLine: ServiceLine | null;
-  hasScheduleActivities: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [replaceSchedule, setReplaceSchedule] = useState(false);
 
   const {
     register,
@@ -98,8 +95,8 @@ export function ProjectDeliverablePlan({
     control,
     reset,
     formState: { errors },
-  } = useForm<DeliverablePlanItemFormValues>({
-    resolver: zodResolver(DeliverablePlanItemSchema),
+  } = useForm<DeliverableCatalogItemFormValues>({
+    resolver: zodResolver(DeliverableCatalogItemSchema),
     defaultValues: emptyForm,
   });
 
@@ -111,19 +108,19 @@ export function ProjectDeliverablePlan({
     reset(emptyForm);
   }
 
-  function startEdit(item: DeliverablePlanItem) {
+  function startEdit(item: DeliverableCatalogItem) {
     setEditingId(item.id);
     setOpen(true);
     reset(itemToForm(item));
   }
 
-  function onSubmit(values: DeliverablePlanItemFormValues) {
+  function onSubmit(values: DeliverableCatalogItemFormValues) {
     startTransition(async () => {
       const result = editingId
-        ? await updateDeliverablePlanItem(editingId, projectId, values)
-        : await createDeliverablePlanItem(projectId, values);
+        ? await updateDeliverableCatalogItem(editingId, values)
+        : await createDeliverableCatalogItem(values);
       if (result.ok) {
-        toast.success(editingId ? "Entregável atualizado." : "Entregável adicionado ao plano.");
+        toast.success(editingId ? "Etapa atualizada." : "Etapa adicionada ao catálogo.");
         closeForm();
         router.refresh();
       } else {
@@ -133,39 +130,11 @@ export function ProjectDeliverablePlan({
   }
 
   function handleDelete(id: string) {
-    if (!confirm("Excluir este entregável do plano?")) return;
+    if (!confirm("Excluir esta etapa do catálogo?")) return;
     startTransition(async () => {
-      const result = await deleteDeliverablePlanItem(id, projectId);
+      const result = await deleteDeliverableCatalogItem(id);
       if (result.ok) {
-        toast.success("Removido do plano.");
-        router.refresh();
-      } else {
-        toast.error(result.error);
-      }
-    });
-  }
-
-  function publish() {
-    if (hasScheduleActivities && !replaceSchedule) {
-      toast.error("Marque “Substituir cronograma” ou esvazie o Gantt antes.");
-      return;
-    }
-    if (
-      hasScheduleActivities &&
-      replaceSchedule &&
-      !confirm("Substituir todas as atividades do cronograma por este plano?")
-    ) {
-      return;
-    }
-    startTransition(async () => {
-      const result = await publishDeliverablePlanToSchedule(
-        projectId,
-        replaceSchedule,
-      );
-      if (result.ok) {
-        toast.success(
-          `${result.data?.activities ?? 0} etapas publicadas no cronograma.`,
-        );
+        toast.success("Removida do catálogo.");
         router.refresh();
       } else {
         toast.error(result.error);
@@ -177,82 +146,46 @@ export function ProjectDeliverablePlan({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Plano deste projeto. Etapas padrão ficam no{" "}
-            <Link
-              href="/catalog/deliverables"
-              className="text-brand-orange hover:underline"
-            >
-              Catálogo
-            </Link>
-            {" "}— importe com um clique ou adicione manualmente.
-          </p>
-          {initial.length > 0 && (
-            <p className="mt-1 font-mono text-[10px] uppercase text-muted-foreground">
-              {initial.length} entregável(is) · ~{totalDays} dias no plano
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ImportCatalogDialog
-            projectId={projectId}
-            catalog={catalog}
-            projectServiceLine={projectServiceLine}
-            hasExistingPlan={initial.length > 0}
-          />
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              if (open && !editingId) closeForm();
-              else {
-                setEditingId(null);
-                reset(emptyForm);
-                setOpen(true);
-              }
-            }}
-          >
-            <Plus className="size-4" />
-            Entregável
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            disabled={pending || initial.length === 0}
-            onClick={publish}
-          >
-            <Calendar className="size-4" />
-            Publicar no cronograma
-          </Button>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          Cadastre aqui todas as etapas padrão do estúdio. Nos projetos, use{" "}
+          <strong>Importar do catálogo</strong> para trazer a lista de uma vez.
+        </p>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            if (open && !editingId) closeForm();
+            else {
+              setEditingId(null);
+              reset(emptyForm);
+              setOpen(true);
+            }
+          }}
+        >
+          <Plus className="size-4" />
+          Nova etapa
+        </Button>
       </div>
 
-      {hasScheduleActivities && (
-        <label className="flex items-center gap-2 text-xs text-muted-foreground">
-          <input
-            type="checkbox"
-            checked={replaceSchedule}
-            onChange={(e) => setReplaceSchedule(e.target.checked)}
-            className="rounded border-border"
-          />
-          Substituir cronograma existente ao publicar
-        </label>
+      {initial.length > 0 && (
+        <p className="font-mono text-[10px] uppercase text-muted-foreground">
+          {initial.length} etapa(s) · ~{totalDays} dias no pacote completo
+        </p>
       )}
 
       {open && (
         <Card className="p-4">
           <h3 className="mb-3 text-sm font-semibold">
-            {editingId ? "Editar entregável" : "Novo entregável no plano"}
+            {editingId ? "Editar etapa" : "Nova etapa no catálogo"}
           </h3>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2 sm:col-span-2">
-                <Label>Nome do entregável *</Label>
+                <Label>Nome da etapa / entregável *</Label>
                 <Input
-                  placeholder="Ex.: Manual de marca, Site homologação…"
+                  placeholder="Ex.: Manual de marca, Desenvolvimento do site…"
                   {...register("name")}
                 />
                 {errors.name && (
@@ -287,14 +220,9 @@ export function ProjectDeliverablePlan({
                   min={1}
                   {...register("estimated_days", { valueAsNumber: true })}
                 />
-                {errors.estimated_days && (
-                  <p className="text-xs text-destructive">
-                    {errors.estimated_days.message}
-                  </p>
-                )}
               </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>Inicia após (dependência)</Label>
+                <Label>Inicia após</Label>
                 <Controller
                   control={control}
                   name="predecessor_id"
@@ -306,12 +234,10 @@ export function ProjectDeliverablePlan({
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Nenhuma — começa no início do projeto" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__none__">
-                          Nenhuma — início do projeto
-                        </SelectItem>
+                        <SelectItem value="__none__">Nenhuma (primeira etapa)</SelectItem>
                         {predecessorOptions.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.name}
@@ -321,12 +247,36 @@ export function ProjectDeliverablePlan({
                     </Select>
                   )}
                 />
-                <p className="text-xs text-muted-foreground">
-                  A próxima etapa só começa no dia seguinte ao fim da escolhida.
-                </p>
               </div>
               <div className="space-y-2">
-                <Label>Profissional E33</Label>
+                <Label>Área E33 (filtro)</Label>
+                <Controller
+                  control={control}
+                  name="service_line"
+                  render={({ field }) => (
+                    <Select
+                      value={field.value || "__none__"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "__none__" ? "" : v)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Qualquer projeto</SelectItem>
+                        {serviceLines.map(([v, label]) => (
+                          <SelectItem key={v} value={v}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Profissional</Label>
                 <Controller
                   control={control}
                   name="professional_id"
@@ -354,10 +304,7 @@ export function ProjectDeliverablePlan({
               </div>
               <div className="space-y-2 sm:col-span-3">
                 <Label>Observações</Label>
-                <Input
-                  placeholder="Escopo curto, referências…"
-                  {...register("notes")}
-                />
+                <Input {...register("notes")} />
               </div>
             </div>
             <div className="flex gap-2">
@@ -374,20 +321,18 @@ export function ProjectDeliverablePlan({
 
       {initial.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
-          Nenhum entregável no plano. Use <strong>+ Entregável</strong> para
-          montar a sequência antes de publicar no cronograma.
+          Catálogo vazio. Cadastre as etapas que você repete em vários projetos
+          (identidade, site, conteúdo…).
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Entregável</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Etapa</TableHead>
+                <TableHead>Área</TableHead>
                 <TableHead>Dias</TableHead>
                 <TableHead>Depende de</TableHead>
-                <TableHead>Profissional</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="w-[88px]" />
               </TableRow>
             </TableHeader>
@@ -396,37 +341,19 @@ export function ProjectDeliverablePlan({
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {deliverableTypeLabels[item.deliverable_type]}
+                    {item.service_line
+                      ? serviceLineLabels[item.service_line]
+                      : "Geral"}
                   </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {item.estimated_days}d
-                  </TableCell>
+                  <TableCell className="font-mono text-sm">{item.estimated_days}d</TableCell>
                   <TableCell>
                     {item.predecessor ? (
                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                        <GitBranch className="size-3 shrink-0" />
+                        <GitBranch className="size-3" />
                         {item.predecessor.name}
                       </span>
                     ) : (
                       <span className="text-xs text-muted-foreground">Início</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {item.professional?.name ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    {item.deliverable ? (
-                      <DeliverableStatusBadge status={item.deliverable.status} />
-                    ) : (
-                      "—"
-                    )}
-                    {item.activity_id && (
-                      <Link
-                        href={`#cronograma`}
-                        className="ml-1 text-[10px] text-brand-orange hover:underline"
-                      >
-                        no Gantt
-                      </Link>
                     )}
                   </TableCell>
                   <TableCell>
@@ -436,7 +363,6 @@ export function ProjectDeliverablePlan({
                         variant="ghost"
                         size="icon"
                         className="size-8"
-                        disabled={pending}
                         onClick={() => startEdit(item)}
                       >
                         <Pencil className="size-3.5" />
@@ -446,7 +372,6 @@ export function ProjectDeliverablePlan({
                         variant="ghost"
                         size="icon"
                         className="size-8"
-                        disabled={pending}
                         onClick={() => handleDelete(item.id)}
                       >
                         <Trash2 className="size-3.5 text-destructive" />
@@ -458,16 +383,6 @@ export function ProjectDeliverablePlan({
             </TableBody>
           </Table>
         </Card>
-      )}
-
-      {initial.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          Os entregáveis também aparecem na aba{" "}
-          <a href="#entregaveis" className="text-brand-orange hover:underline">
-            Entregáveis
-          </a>{" "}
-          para versões e envio ao cliente.
-        </p>
       )}
     </div>
   );
