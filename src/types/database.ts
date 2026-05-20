@@ -323,8 +323,23 @@ export interface DeliverableWithVersions extends Deliverable {
   comments: DeliverableComment[];
 }
 
+export interface DeliverableCatalogGroup {
+  id: string;
+  name: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DeliverableCatalogGroupWithItems = DeliverableCatalogGroup & {
+  items: DeliverableCatalogItem[];
+};
+
 export interface DeliverableCatalogItem {
   id: string;
+  group_id: string | null;
   name: string;
   deliverable_type: DeliverableType;
   estimated_days: number;

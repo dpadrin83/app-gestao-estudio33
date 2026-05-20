@@ -49,6 +49,7 @@ const TABLES = [
   "client_access",
   "project_deliverable_plan_items",
   "studio_deliverable_catalog",
+  "deliverable_catalog_groups",
 ];
 
 async function main() {

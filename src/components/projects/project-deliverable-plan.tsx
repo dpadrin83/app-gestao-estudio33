@@ -40,9 +40,8 @@ import {
 } from "@/lib/actions/deliverable-plan";
 import { deliverableTypeLabels } from "@/lib/format";
 import type {
-  DeliverableCatalogItem,
+  DeliverableCatalogGroupWithItems,
   DeliverablePlanItem,
-  ServiceLine,
   StudioProfessional,
 } from "@/types/database";
 
@@ -75,15 +74,13 @@ export function ProjectDeliverablePlan({
   projectId,
   items: initial,
   professionals,
-  catalog,
-  projectServiceLine,
+  catalogGroups,
   hasScheduleActivities,
 }: {
   projectId: string;
   items: DeliverablePlanItem[];
   professionals: StudioProfessional[];
-  catalog: DeliverableCatalogItem[];
-  projectServiceLine: ServiceLine | null;
+  catalogGroups: DeliverableCatalogGroupWithItems[];
   hasScheduleActivities: boolean;
 }) {
   const router = useRouter();
@@ -198,8 +195,7 @@ export function ProjectDeliverablePlan({
         <div className="flex flex-wrap gap-2">
           <ImportCatalogDialog
             projectId={projectId}
-            catalog={catalog}
-            projectServiceLine={projectServiceLine}
+            groups={catalogGroups}
             hasExistingPlan={initial.length > 0}
           />
           <Button

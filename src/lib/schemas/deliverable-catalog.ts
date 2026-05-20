@@ -10,7 +10,17 @@ export const serviceLineCatalogEnum = z.enum([
   "hybrid",
 ]);
 
+export const DeliverableCatalogGroupSchema = z.object({
+  name: z.string().min(2, "Informe o nome da área.").max(120),
+  description: z.string().max(500).optional().or(z.literal("")),
+});
+
+export type DeliverableCatalogGroupFormValues = z.infer<
+  typeof DeliverableCatalogGroupSchema
+>;
+
 export const DeliverableCatalogItemSchema = z.object({
+  group_id: z.string().uuid("Selecione a área."),
   name: z.string().min(2, "Informe o nome da etapa.").max(200),
   deliverable_type: deliverableTypeEnum,
   estimated_days: z

@@ -15,7 +15,8 @@ with expected_tables as (
     'studio_professionals', 'project_macro_areas', 'project_work_items',
     'prompt_templates', 'client_services', 'client_access',
     'project_deliverable_plan_items',
-    'studio_deliverable_catalog'
+    'studio_deliverable_catalog',
+    'deliverable_catalog_groups'
   ]) as name
 ),
 table_check as (

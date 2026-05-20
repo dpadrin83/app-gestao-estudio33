@@ -3,10 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  DeliverableCatalogGroupSchema,
   DeliverableCatalogItemSchema,
+  type DeliverableCatalogGroupFormValues,
   type DeliverableCatalogItemFormValues,
 } from "@/lib/schemas/deliverable-catalog";
-import type { DeliverableCatalogItem } from "@/types/database";
+import type {
+  DeliverableCatalogGroup,
+  DeliverableCatalogGroupWithItems,
+  DeliverableCatalogItem,
+} from "@/types/database";
 import type { ActionResult } from "@/lib/actions/deliverables";
 import {
   createDeliverablePlanItem,
@@ -48,12 +54,95 @@ export async function listDeliverableCatalog(opts?: {
   }));
 }
 
-async function nextCatalogSort(): Promise<number> {
+async function nextGroupSort(): Promise<number> {
+  const supabase = await createSupabaseServerClient();
+  const { count } = await supabase
+    .from("deliverable_catalog_groups")
+    .select("id", { count: "exact", head: true });
+  return count ?? 0;
+}
+
+async function nextItemSortInGroup(groupId: string): Promise<number> {
   const supabase = await createSupabaseServerClient();
   const { count } = await supabase
     .from("studio_deliverable_catalog")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .eq("group_id", groupId);
   return count ?? 0;
+}
+
+export async function getCatalogStructure(): Promise<{
+  groups: DeliverableCatalogGroupWithItems[];
+  ungrouped: DeliverableCatalogItem[];
+}> {
+  const supabase = await createSupabaseServerClient();
+  const [groupsRes, items] = await Promise.all([
+    supabase
+      .from("deliverable_catalog_groups")
+      .select("*")
+      .order("sort_order", { ascending: true }),
+    listDeliverableCatalog({ activeOnly: false }),
+  ]);
+
+  if (groupsRes.error) {
+    console.error("[getCatalogStructure groups]", groupsRes.error);
+  }
+
+  const groups = (groupsRes.data ?? []) as DeliverableCatalogGroup[];
+  const grouped = groups.map((g) => ({
+    ...g,
+    items: items.filter((i) => i.group_id === g.id),
+  }));
+  const ungrouped = items.filter((i) => !i.group_id);
+
+  return { groups: grouped, ungrouped };
+}
+
+export async function createCatalogGroup(
+  values: DeliverableCatalogGroupFormValues,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = DeliverableCatalogGroupSchema.safeParse(values);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("deliverable_catalog_groups")
+    .insert({
+      name: parsed.data.name.trim(),
+      description: parsed.data.description?.trim() || null,
+      sort_order: await nextGroupSort(),
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    console.error("[createCatalogGroup]", error);
+    return { ok: false, error: "Não foi possível criar a área." };
+  }
+
+  revalidateCatalog();
+  return { ok: true, data: { id: data.id } };
+}
+
+export async function deleteCatalogGroup(id: string): Promise<ActionResult> {
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("deliverable_catalog_groups")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("[deleteCatalogGroup]", error);
+    return { ok: false, error: "Não foi possível excluir a área." };
+  }
+
+  revalidateCatalog();
+  return { ok: true };
 }
 
 function wouldCreateCycle(
@@ -87,20 +176,23 @@ export async function createDeliverableCatalogItem(
     };
   }
 
-  const existing = await listDeliverableCatalog({ activeOnly: false });
+  const groupItems = (
+    await listDeliverableCatalog({ activeOnly: false })
+  ).filter((i) => i.group_id === parsed.data.group_id);
   const predecessorId =
     parsed.data.predecessor_id && parsed.data.predecessor_id !== ""
       ? parsed.data.predecessor_id
       : null;
 
-  if (predecessorId && !existing.some((i) => i.id === predecessorId)) {
-    return { ok: false, error: "Etapa anterior inválida." };
+  if (predecessorId && !groupItems.some((i) => i.id === predecessorId)) {
+    return { ok: false, error: "Etapa anterior deve ser da mesma área." };
   }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("studio_deliverable_catalog")
     .insert({
+      group_id: parsed.data.group_id,
       name: parsed.data.name.trim(),
       deliverable_type: parsed.data.deliverable_type,
       estimated_days: parsed.data.estimated_days,
@@ -112,7 +204,7 @@ export async function createDeliverableCatalogItem(
       service_line: parsed.data.service_line || null,
       notes: parsed.data.notes?.trim() || null,
       is_active: parsed.data.is_active ?? true,
-      sort_order: await nextCatalogSort(),
+      sort_order: await nextItemSortInGroup(parsed.data.group_id),
     })
     .select("id")
     .single();
@@ -138,7 +230,9 @@ export async function updateDeliverableCatalogItem(
     };
   }
 
-  const existing = await listDeliverableCatalog({ activeOnly: false });
+  const groupItems = (
+    await listDeliverableCatalog({ activeOnly: false })
+  ).filter((i) => i.group_id === parsed.data.group_id);
   const predecessorId =
     parsed.data.predecessor_id && parsed.data.predecessor_id !== ""
       ? parsed.data.predecessor_id
@@ -147,7 +241,7 @@ export async function updateDeliverableCatalogItem(
   if (
     predecessorId &&
     wouldCreateCycle(
-      existing.map((i) => ({ id: i.id, predecessor_id: i.predecessor_id })),
+      groupItems.map((i) => ({ id: i.id, predecessor_id: i.predecessor_id })),
       id,
       predecessorId,
     )
@@ -159,6 +253,7 @@ export async function updateDeliverableCatalogItem(
   const { error } = await supabase
     .from("studio_deliverable_catalog")
     .update({
+      group_id: parsed.data.group_id,
       name: parsed.data.name.trim(),
       deliverable_type: parsed.data.deliverable_type,
       estimated_days: parsed.data.estimated_days,
@@ -333,4 +428,23 @@ export async function importCatalogToProject(
 
   revalidatePath(`/projects/${projectId}`);
   return { ok: true, data: { count } };
+}
+
+/** Importa todas as etapas de uma área do catálogo para o projeto. */
+export async function importCatalogGroupToProject(
+  projectId: string,
+  groupId: string,
+  opts?: { replaceExisting?: boolean },
+): Promise<ActionResult<{ count: number }>> {
+  const items = (await listDeliverableCatalog({ activeOnly: true })).filter(
+    (i) => i.group_id === groupId,
+  );
+  if (items.length === 0) {
+    return { ok: false, error: "Esta área não tem etapas cadastradas." };
+  }
+  return importCatalogToProject(
+    projectId,
+    items.map((i) => i.id),
+    opts,
+  );
 }

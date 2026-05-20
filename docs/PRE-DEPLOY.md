@@ -128,5 +128,6 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 18 | `20260521130000_client_access_unify.sql` |
 | 19 | `20260521140000_project_deliverable_plan.sql` |
 | 20 | `20260521150000_studio_deliverable_catalog.sql` |
+| 21 | `20260521160000_deliverable_catalog_groups.sql` |
 
 Detalhes: [deploy.md](./deploy.md)

@@ -12,33 +12,45 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { importCatalogToProject } from "@/lib/actions/deliverable-catalog";
-import { serviceLineLabels, deliverableTypeLabels } from "@/lib/format";
-import type { DeliverableCatalogItem, ServiceLine } from "@/types/database";
+import {
+  importCatalogGroupToProject,
+  importCatalogToProject,
+} from "@/lib/actions/deliverable-catalog";
+import { deliverableTypeLabels } from "@/lib/format";
+import type { DeliverableCatalogGroupWithItems } from "@/types/database";
 import { cn } from "@/lib/utils";
 
 export function ImportCatalogDialog({
   projectId,
-  catalog,
-  projectServiceLine,
+  groups,
   hasExistingPlan,
 }: {
   projectId: string;
-  catalog: DeliverableCatalogItem[];
-  projectServiceLine: ServiceLine | null;
+  groups: DeliverableCatalogGroupWithItems[];
   hasExistingPlan: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const [activeGroupId, setActiveGroupId] = useState(groups[0]?.id ?? "");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [replace, setReplace] = useState(false);
 
-  const filtered = projectServiceLine
-    ? catalog.filter(
-        (c) => !c.service_line || c.service_line === projectServiceLine,
-      )
-    : catalog;
+  const activeGroup = groups.find((g) => g.id === activeGroupId);
+  const activeItems = activeGroup?.items ?? [];
+
+  function openDialog() {
+    const first = groups[0];
+    setActiveGroupId(first?.id ?? "");
+    setSelected(new Set(first?.items.map((i) => i.id) ?? []));
+    setOpen(true);
+  }
+
+  function selectGroup(groupId: string) {
+    setActiveGroupId(groupId);
+    const g = groups.find((x) => x.id === groupId);
+    setSelected(new Set(g?.items.map((i) => i.id) ?? []));
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -49,12 +61,8 @@ export function ImportCatalogDialog({
     });
   }
 
-  function selectAll() {
-    setSelected(new Set(filtered.map((c) => c.id)));
-  }
-
-  function clearAll() {
-    setSelected(new Set());
+  function selectAllInGroup() {
+    setSelected(new Set(activeItems.map((i) => i.id)));
   }
 
   function importSelected() {
@@ -65,11 +73,8 @@ export function ImportCatalogDialog({
         { replaceExisting: replace },
       );
       if (result.ok) {
-        toast.success(
-          `${result.data?.count ?? 0} etapa(s) importadas para o projeto.`,
-        );
+        toast.success(`${result.data?.count ?? 0} etapa(s) importadas.`);
         setOpen(false);
-        setSelected(new Set());
         router.refresh();
       } else {
         toast.error(result.error);
@@ -77,17 +82,34 @@ export function ImportCatalogDialog({
     });
   }
 
+  function importWholeArea() {
+    if (!activeGroupId) return;
+    startTransition(async () => {
+      const result = await importCatalogGroupToProject(projectId, activeGroupId, {
+        replaceExisting: replace,
+      });
+      if (result.ok) {
+        toast.success(
+          `Área "${activeGroup?.name}" importada (${result.data?.count ?? 0} etapas).`,
+        );
+        setOpen(false);
+        router.refresh();
+      } else {
+        toast.error(result.error);
+      }
+    });
+  }
+
+  const totalItems = groups.reduce((s, g) => s + g.items.length, 0);
+
   return (
     <>
       <Button
         type="button"
         size="sm"
         variant="outline"
-        disabled={catalog.length === 0}
-        onClick={() => {
-          setSelected(new Set(filtered.map((c) => c.id)));
-          setOpen(true);
-        }}
+        disabled={totalItems === 0}
+        onClick={openDialog}
       >
         <Download className="size-4" />
         Importar do catálogo
@@ -96,18 +118,10 @@ export function ImportCatalogDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Importar etapas do catálogo</DialogTitle>
+            <DialogTitle>Importar do catálogo</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Marque o que entra neste projeto. Dependências anteriores entram
-            automaticamente.
-            {projectServiceLine && (
-              <>
-                {" "}
-                Filtrado para{" "}
-                <strong>{serviceLineLabels[projectServiceLine]}</strong>.
-              </>
-            )}
+            Escolha uma área (ex.: Onboarding) ou marque etapas avulsas.
           </p>
 
           {hasExistingPlan && (
@@ -117,40 +131,58 @@ export function ImportCatalogDialog({
                 checked={replace}
                 onChange={(e) => setReplace(e.target.checked)}
               />
-              Substituir entregáveis já no plano deste projeto
+              Substituir plano atual do projeto
             </label>
+          )}
+
+          <div className="flex flex-wrap gap-1">
+            {groups.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => selectGroup(g.id)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs transition",
+                  activeGroupId === g.id
+                    ? "border-brand-orange bg-brand-orange/15 text-foreground"
+                    : "border-border text-muted-foreground hover:bg-muted/50",
+                )}
+              >
+                {g.name} ({g.items.length})
+              </button>
+            ))}
+          </div>
+
+          {activeGroup && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="w-full"
+              disabled={pending || activeItems.length === 0}
+              onClick={importWholeArea}
+            >
+              Importar área inteira: {activeGroup.name}
+            </Button>
           )}
 
           <div className="flex gap-2 text-xs">
             <button
               type="button"
               className="text-brand-orange hover:underline"
-              onClick={selectAll}
+              onClick={selectAllInGroup}
             >
-              Marcar todos
-            </button>
-            <button
-              type="button"
-              className="text-muted-foreground hover:underline"
-              onClick={clearAll}
-            >
-              Limpar
+              Marcar todas desta área
             </button>
           </div>
 
-          <ul className="max-h-[320px] space-y-1 overflow-y-auto rounded-md border border-border p-2">
-            {filtered.length === 0 ? (
+          <ul className="max-h-[280px] space-y-1 overflow-y-auto rounded-md border border-border p-2">
+            {activeItems.length === 0 ? (
               <li className="p-4 text-center text-sm text-muted-foreground">
-                Nada no catálogo.
-                <a
-                  href="/catalog/deliverables"
-                  className="mt-1 block text-brand-orange hover:underline"
-                >
-                  Abrir catálogo
-                </a>
+                Esta área não tem etapas.
               </li>
             ) : (
-              filtered.map((c) => (
+              activeItems.map((c) => (
                 <li key={c.id}>
                   <label
                     className={cn(
@@ -186,7 +218,7 @@ export function ImportCatalogDialog({
               disabled={pending || selected.size === 0}
               onClick={importSelected}
             >
-              Importar {selected.size > 0 ? `(${selected.size})` : ""}
+              Importar selecionadas ({selected.size})
             </Button>
           </DialogFooter>
         </DialogContent>
