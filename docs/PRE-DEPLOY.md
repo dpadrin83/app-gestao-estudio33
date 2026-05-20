@@ -131,6 +131,7 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 21 | `20260521160000_deliverable_catalog_groups.sql` |
 | 22 | `20260521170000_seed_branding_catalog_areas.sql` (opcional — áreas vazias branding) |
 | 23 | `20260521180000_seed_onboarding_catalog_steps.sql` (área Onboarding + 5 etapas) |
-| 24 | `20260521190000_seed_branding_strategy_catalog_steps.sql` (branding + estratégia, 18 etapas) |
+| 24 | `20260521190000_seed_branding_strategy_catalog_steps.sql` (Branding e Estratégia de Marca, 18 etapas) |
+| 25 | `20260521200000_rename_branding_area.sql` (só se já rodou o nome antigo da área) |
 
 Detalhes: [deploy.md](./deploy.md)

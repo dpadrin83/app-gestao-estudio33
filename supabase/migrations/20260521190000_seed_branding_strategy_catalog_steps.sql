@@ -1,4 +1,4 @@
--- Área: Branding e estratégias digital ou de marca (prompts 01–18)
+-- Área: Branding e Estratégia de Marca (prompts 01–18)
 -- Identidade visual (19+) fica em área(s) separadas depois.
 
 do $$
@@ -22,17 +22,27 @@ begin
 
   insert into public.deliverable_catalog_groups (name, description, sort_order)
   select
-    'Branding e estratégias digital ou de marca',
+    'Branding e Estratégia de Marca',
     'Diagnóstico, posicionamento, estratégia digital, personalidade e identidade verbal (Prompts 01–18).',
     10
   where not exists (
     select 1 from public.deliverable_catalog_groups g
-    where lower(trim(g.name)) = lower(trim('Branding e estratégias digital ou de marca'))
+    where lower(trim(g.name)) in (
+      lower(trim('Branding e Estratégia de Marca')),
+      lower(trim('Branding e estratégias digital ou de marca'))
+    )
   );
 
   select id into gid
   from public.deliverable_catalog_groups
-  where lower(trim(name)) = lower(trim('Branding e estratégias digital ou de marca'))
+  where lower(trim(name)) in (
+    lower(trim('Branding e Estratégia de Marca')),
+    lower(trim('Branding e estratégias digital ou de marca'))
+  )
+  order by case
+    when lower(trim(name)) = lower(trim('Branding e Estratégia de Marca')) then 0
+    else 1
+  end
   limit 1;
 
   if gid is null then
