@@ -21,7 +21,6 @@ export async function listUpcomingRenewals(
   const supabase = await createSupabaseServerClient();
   const today = new Date();
   const until = format(addDays(today, withinDays), "yyyy-MM-dd");
-  const todayStr = format(today, "yyyy-MM-dd");
 
   const { data, error } = await supabase
     .from("client_access")
@@ -29,10 +28,10 @@ export async function listUpcomingRenewals(
       "id, label, kind, next_due_date, amount, currency, client:clients(id, name)",
     )
     .eq("is_active", true)
-    .gte("next_due_date", todayStr)
+    .not("next_due_date", "is", null)
     .lte("next_due_date", until)
     .order("next_due_date", { ascending: true })
-    .limit(12);
+    .limit(20);
 
   if (error) {
     console.error("[listUpcomingRenewals]", error);

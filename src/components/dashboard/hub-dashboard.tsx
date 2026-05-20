@@ -484,7 +484,7 @@ export function HubDashboard({
           <div className="flex items-center justify-between border-b border-border px-5 py-3">
             <h2 className="flex items-center gap-2 text-sm font-semibold">
               <Globe className="size-4 text-brand-pink" />
-              Renovações (45 dias)
+              Acessos — vencidos e próximos 45 dias
             </h2>
             <Link
               href="/services"
@@ -494,7 +494,7 @@ export function HubDashboard({
             </Link>
           </div>
           <ul className="divide-y divide-border">
-            {renewals.slice(0, 4).map((r) => (
+            {renewals.slice(0, 6).map((r) => (
               <li
                 key={r.id}
                 className="flex items-center justify-between gap-3 px-5 py-3"
@@ -502,16 +502,39 @@ export function HubDashboard({
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{r.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {r.clientName} · vence {r.nextDueDate}
+                    <Link
+                      href={`/clients/${r.clientId}`}
+                      className="hover:text-brand-orange hover:underline"
+                    >
+                      {r.clientName}
+                    </Link>
+                    {" · "}
+                    vence {r.nextDueDate}
+                    {r.amount != null && (
+                      <span className="text-foreground/80">
+                        {" "}
+                        ·{" "}
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: r.currency || "BRL",
+                        }).format(r.amount)}
+                      </span>
+                    )}
                   </p>
                 </div>
                 <span
                   className={cn(
                     "shrink-0 font-mono text-[10px] uppercase",
-                    r.daysUntil <= 14 ? "text-warning" : "text-muted-foreground",
+                    r.daysUntil < 0 && "text-destructive",
+                    r.daysUntil >= 0 && r.daysUntil <= 14 && "text-warning",
+                    r.daysUntil > 14 && "text-muted-foreground",
                   )}
                 >
-                  {r.daysUntil === 0 ? "hoje" : `${r.daysUntil}d`}
+                  {r.daysUntil < 0
+                    ? `${Math.abs(r.daysUntil)}d atraso`
+                    : r.daysUntil === 0
+                      ? "hoje"
+                      : `${r.daysUntil}d`}
                 </span>
               </li>
             ))}
