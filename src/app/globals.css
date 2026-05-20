@@ -234,3 +234,23 @@
   );
   border: 1px solid rgba(255, 189, 0, 0.14);
 }
+
+/* Export PDF do Gantt portfólio (dashboard) */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #portfolio-gantt-export,
+  #portfolio-gantt-export * {
+    visibility: visible !important;
+  }
+  #portfolio-gantt-export {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: #0b0d12 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

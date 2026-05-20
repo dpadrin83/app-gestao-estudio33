@@ -1,10 +1,11 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
-export function PortfolioGanttBar({
+export function PortfolioGanttDraggableBar({
   startDate,
   endDate,
   openActivitiesCount,
@@ -14,6 +15,8 @@ export function PortfolioGanttBar({
   isDueThisWeek,
   colorClass,
   style,
+  totalDays,
+  onDragEnd,
 }: {
   startDate: string;
   endDate: string;
@@ -24,24 +27,70 @@ export function PortfolioGanttBar({
   isDueThisWeek: boolean;
   colorClass: string;
   style: { left: string; width: string };
+  totalDays: number;
+  onDragEnd: (deltaDays: number, timelineWidth: number) => void;
 }) {
   const startLabel = format(parseISO(startDate), "dd MMM yyyy", { locale: ptBR });
   const endLabel = format(parseISO(endDate), "dd MMM yyyy", { locale: ptBR });
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [dragPx, setDragPx] = useState(0);
+  const dragging = useRef(false);
+  const startX = useRef(0);
+
+  const finishDrag = useCallback(
+    (clientX: number) => {
+      if (!dragging.current || !trackRef.current) return;
+      dragging.current = false;
+      const width = trackRef.current.parentElement?.clientWidth ?? 0;
+      const deltaPx = clientX - startX.current;
+      setDragPx(0);
+      if (width > 0 && Math.abs(deltaPx) > 4) {
+        const deltaDays = Math.round((deltaPx / width) * totalDays);
+        if (deltaDays !== 0) onDragEnd(deltaDays, width);
+      }
+    },
+    [onDragEnd, totalDays],
+  );
 
   return (
     <div
-      className="group/bar absolute top-1 bottom-1 z-[1] cursor-default"
-      style={style}
+      ref={trackRef}
+      className="group/bar absolute top-1 bottom-1 z-[1] touch-none"
+      style={{
+        ...style,
+        transform: dragPx ? `translateX(${dragPx}px)` : undefined,
+      }}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        dragging.current = true;
+        startX.current = e.clientX;
+        setDragPx(0);
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+      }}
+      onPointerMove={(e) => {
+        if (!dragging.current) return;
+        setDragPx(e.clientX - startX.current);
+      }}
+      onPointerUp={(e) => {
+        finishDrag(e.clientX);
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      }}
+      onPointerCancel={(e) => {
+        dragging.current = false;
+        setDragPx(0);
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      }}
     >
       <div
         className={cn(
-          "h-full w-full rounded-md transition-shadow",
+          "h-full w-full cursor-grab rounded-md transition-shadow active:cursor-grabbing",
           isOverdue ? "bg-destructive" : colorClass,
           isDueThisWeek &&
             !isOverdue &&
             "ring-2 ring-warning/70 ring-offset-1 ring-offset-transparent",
+          dragPx !== 0 && "opacity-80 shadow-lg ring-2 ring-brand-orange/50",
         )}
-        aria-label={`${startLabel} até ${endLabel}`}
+        aria-label={`${startLabel} até ${endLabel}. Arraste para mover.`}
       />
       <div
         role="tooltip"
@@ -66,6 +115,9 @@ export function PortfolioGanttBar({
             Vence esta semana
           </p>
         )}
+        <p className="mt-1.5 font-mono text-[9px] uppercase tracking-wider text-brand-orange">
+          Arraste para mover prazos
+        </p>
       </div>
     </div>
   );
