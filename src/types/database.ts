@@ -323,6 +323,25 @@ export interface DeliverableWithVersions extends Deliverable {
   comments: DeliverableComment[];
 }
 
+export interface DeliverablePlanItem {
+  id: string;
+  project_id: string;
+  name: string;
+  deliverable_type: DeliverableType;
+  estimated_days: number;
+  professional_id: string | null;
+  predecessor_id: string | null;
+  deliverable_id: string | null;
+  activity_id: string | null;
+  notes: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  professional?: { id: string; name: string } | null;
+  predecessor?: Pick<DeliverablePlanItem, "id" | "name"> | null;
+  deliverable?: Pick<Deliverable, "id" | "name" | "status"> | null;
+}
+
 /* ─── Plano por área macro (profissionais E33) ─── */
 
 export interface StudioProfessional {

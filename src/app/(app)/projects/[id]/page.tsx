@@ -27,11 +27,9 @@ import { ProjectActivityFeed } from "../project-activity-feed";
 import { ProjectSchedule } from "../project-schedule";
 import { ProjectTasksKanban } from "../project-tasks-kanban";
 import { ProjectDeliverables } from "../project-deliverables";
-import { ProjectMacroPlan } from "../project-macro-plan";
-import {
-  getProjectMacroPlan,
-  listStudioProfessionals,
-} from "@/lib/actions/project-macro-plan";
+import { ProjectDeliverablePlan } from "@/components/projects/project-deliverable-plan";
+import { getDeliverablePlan } from "@/lib/actions/deliverable-plan";
+import { listStudioProfessionals } from "@/lib/actions/project-macro-plan";
 import { ProjectTabs } from "@/components/projects/project-tabs";
 import { serviceLineLabels } from "@/lib/format";
 import { ProjectFinance } from "../project-finance";
@@ -66,7 +64,7 @@ export default async function ProjectDetailPage({
     tasks,
     activityFeed,
     projectLinks,
-    macroPlan,
+    deliverablePlan,
     studioProfessionals,
   ] = await Promise.all([
     listActiveClients(),
@@ -80,7 +78,7 @@ export default async function ProjectDetailPage({
     listTasksByProject(id),
     getProjectActivityFeed(id),
     listProjectLinks(id),
-    getProjectMacroPlan(id),
+    getDeliverablePlan(id),
     listStudioProfessionals(),
   ]);
 
@@ -190,16 +188,17 @@ export default async function ProjectDetailPage({
       </div>
 
       <h2
-        id="plano-entregas"
+        id="plano-entregaveis"
         className="mb-3 text-xl font-semibold tracking-tight scroll-mt-24"
       >
-        Plano por área
+        Plano de entregáveis
       </h2>
       <div className="mb-10">
-        <ProjectMacroPlan
+        <ProjectDeliverablePlan
           projectId={project.id}
-          plan={macroPlan}
+          items={deliverablePlan}
           professionals={studioProfessionals}
+          hasScheduleActivities={activities.length > 0}
         />
       </div>
 

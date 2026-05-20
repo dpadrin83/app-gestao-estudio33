@@ -13,7 +13,8 @@ with expected_tables as (
     'project_costs', 'app_settings',
     'ai_generations', 'tasks', 'project_links',
     'studio_professionals', 'project_macro_areas', 'project_work_items',
-    'prompt_templates', 'client_services', 'client_access'
+    'prompt_templates', 'client_services', 'client_access',
+    'project_deliverable_plan_items'
   ]) as name
 ),
 table_check as (

@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const TABS = [
   { id: "dados", label: "Dados" },
   { id: "cronograma", label: "Cronograma" },
-  { id: "plano-entregas", label: "Plano por área" },
+  { id: "plano-entregaveis", label: "Plano de entregáveis" },
   { id: "tarefas", label: "Tarefas" },
   { id: "entregaveis", label: "Entregáveis" },
   { id: "financeiro", label: "Financeiro" },
