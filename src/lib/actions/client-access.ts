@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   ClientAccessSchema,
+  isRenewalAccessKind,
+  parseClientAccessAmount,
   type ClientAccessFormValues,
 } from "@/lib/schemas/client-access";
-import type { ClientAccess } from "@/types/database";
+import type { ClientAccess, ClientAccessWithClient } from "@/types/database";
 import type { ActionResult } from "@/lib/actions/projects";
 
 function normalizeUrl(url: string | undefined) {
@@ -22,18 +24,31 @@ function rowFromForm(
 ): Omit<ClientAccess, "id" | "created_at" | "updated_at"> {
   const pwd = data.password?.trim();
   const due = data.next_due_date?.trim();
+  const renewal = isRenewalAccessKind(data.kind);
 
   return {
     client_id: clientId,
     kind: data.kind,
     label: data.label.trim(),
     login_url: normalizeUrl(data.login_url),
-    username: data.username?.trim() || null,
+    username: data.username.trim(),
     next_due_date: due || null,
-    password: pwd ? pwd : (existing?.password ?? null),
+    password: pwd ? pwd : (existing?.password ?? ""),
+    provider: data.provider?.trim() || null,
+    amount: parseClientAccessAmount(data.amount),
+    billing_cycle: renewal
+      ? (data.billing_cycle ?? "yearly")
+      : (data.billing_cycle ?? null),
+    currency: "BRL",
     notes: data.notes?.trim() || null,
     is_active: data.is_active ?? true,
   };
+}
+
+function revalidateAccessPaths(clientId: string) {
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/services");
+  revalidatePath("/dashboard");
 }
 
 export async function listClientAccess(clientId: string): Promise<ClientAccess[]> {
@@ -53,6 +68,22 @@ export async function listClientAccess(clientId: string): Promise<ClientAccess[]
   return (data ?? []) as ClientAccess[];
 }
 
+export async function listAllClientAccess(): Promise<ClientAccessWithClient[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("client_access")
+    .select("*, client:clients(id, name)")
+    .eq("is_active", true)
+    .not("next_due_date", "is", null)
+    .order("next_due_date", { ascending: true });
+
+  if (error) {
+    console.error("[listAllClientAccess]", error);
+    return [];
+  }
+  return (data ?? []) as ClientAccessWithClient[];
+}
+
 export async function createClientAccess(
   clientId: string,
   values: ClientAccessFormValues,
@@ -63,6 +94,9 @@ export async function createClientAccess(
       ok: false,
       error: parsed.error.issues[0]?.message ?? "Dados inválidos.",
     };
+  }
+  if (!parsed.data.password?.trim()) {
+    return { ok: false, error: "Informe a senha." };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -77,7 +111,7 @@ export async function createClientAccess(
     return { ok: false, error: "Não foi possível cadastrar o acesso." };
   }
 
-  revalidatePath(`/clients/${clientId}`);
+  revalidateAccessPaths(clientId);
   return { ok: true, data: { id: data.id } };
 }
 
@@ -101,12 +135,17 @@ export async function updateClientAccess(
     .eq("id", id)
     .single();
 
+  const row = rowFromForm(clientId, parsed.data, {
+    password: (current?.password as string) ?? "",
+  });
+  if (!row.password) {
+    return { ok: false, error: "Informe a senha." };
+  }
+
   const { error } = await supabase
     .from("client_access")
     .update({
-      ...rowFromForm(clientId, parsed.data, {
-        password: (current?.password as string | null) ?? null,
-      }),
+      ...row,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
@@ -116,7 +155,7 @@ export async function updateClientAccess(
     return { ok: false, error: "Não foi possível atualizar o acesso." };
   }
 
-  revalidatePath(`/clients/${clientId}`);
+  revalidateAccessPaths(clientId);
   return { ok: true };
 }
 
@@ -131,6 +170,6 @@ export async function deleteClientAccess(
     return { ok: false, error: "Não foi possível excluir o acesso." };
   }
 
-  revalidatePath(`/clients/${clientId}`);
+  revalidateAccessPaths(clientId);
   return { ok: true };
 }

@@ -111,7 +111,18 @@ export type ClientServiceWithClient = ClientService & {
   client: Pick<Client, "id" | "name">;
 };
 
-export type ClientAccessKind = "instagram" | "registro_br" | "other";
+export type ClientAccessKind =
+  | "instagram"
+  | "registro_br"
+  | "domain_br"
+  | "domain"
+  | "hosting"
+  | "email"
+  | "ssl"
+  | "cdn"
+  | "other";
+
+export type ClientAccessBillingCycle = "monthly" | "yearly" | "other";
 
 export interface ClientAccess {
   id: string;
@@ -119,14 +130,22 @@ export interface ClientAccess {
   kind: ClientAccessKind;
   label: string;
   login_url: string | null;
-  username: string | null;
+  username: string;
   next_due_date: string | null;
-  password: string | null;
+  password: string;
+  provider: string | null;
+  amount: number | null;
+  billing_cycle: ClientAccessBillingCycle | null;
+  currency: string;
   notes: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
+
+export type ClientAccessWithClient = ClientAccess & {
+  client: Pick<Client, "id" | "name">;
+};
 
 export type PaymentStatus = "to_invoice" | "invoiced" | "received";
 

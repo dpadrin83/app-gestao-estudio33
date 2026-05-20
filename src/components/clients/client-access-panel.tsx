@@ -6,6 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ClientAccessSchema,
+  isRenewalAccessKind,
   type ClientAccessFormValues,
 } from "@/lib/schemas/client-access";
 import {
@@ -38,22 +39,42 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { clientAccessKindLabels, formatDate } from "@/lib/format";
-import type { ClientAccess } from "@/types/database";
+import {
+  clientAccessBillingCycleLabels,
+  clientAccessKindLabels,
+  formatCurrency,
+  formatDate,
+} from "@/lib/format";
+import type { ClientAccess, ClientAccessKind } from "@/types/database";
 import { cn } from "@/lib/utils";
 
-const kinds = Object.entries(clientAccessKindLabels) as [
-  ClientAccessFormValues["kind"],
+const kindOrder: ClientAccessKind[] = [
+  "instagram",
+  "registro_br",
+  "domain_br",
+  "domain",
+  "hosting",
+  "email",
+  "ssl",
+  "cdn",
+  "other",
+];
+
+const cycles = Object.entries(clientAccessBillingCycleLabels) as [
+  NonNullable<ClientAccessFormValues["billing_cycle"]>,
   string,
 ][];
 
 const emptyForm: ClientAccessFormValues = {
   kind: "instagram",
   label: "",
-  login_url: "",
   username: "",
-  next_due_date: "",
   password: "",
+  login_url: "",
+  next_due_date: "",
+  provider: "",
+  billing_cycle: "yearly",
+  amount: "",
   notes: "",
   is_active: true,
 };
@@ -62,25 +83,23 @@ function accessToForm(a: ClientAccess): ClientAccessFormValues {
   return {
     kind: a.kind,
     label: a.label,
+    username: a.username,
+    password: a.password,
     login_url: a.login_url ?? "",
-    username: a.username ?? "",
     next_due_date: a.next_due_date?.slice(0, 10) ?? "",
-    password: a.password ?? "",
+    provider: a.provider ?? "",
+    billing_cycle: a.billing_cycle ?? "yearly",
+    amount: a.amount != null ? String(a.amount).replace(".", ",") : "",
     notes: a.notes ?? "",
     is_active: a.is_active,
   };
 }
 
-const kindPlaceholders: Record<ClientAccessFormValues["kind"], string> = {
-  instagram: "Ex.: @marcaoficial · conta principal",
+const labelPlaceholders: Partial<Record<ClientAccessKind, string>> = {
+  instagram: "Ex.: @marcaoficial",
   registro_br: "Ex.: dominio.com.br",
-  other: "Ex.: Meta Business · Google Ads",
-};
-
-const urlPlaceholders: Record<ClientAccessFormValues["kind"], string> = {
-  instagram: "https://www.instagram.com/…",
-  registro_br: "https://registro.br/…",
-  other: "https://…",
+  domain_br: "Ex.: panorama.com.br",
+  hosting: "Ex.: Hospedagem principal",
 };
 
 function DueBadge({
@@ -109,12 +128,12 @@ function DueBadge({
   );
 }
 
-function PasswordCell({ value }: { value: string | null }) {
+function PasswordCell({ value }: { value: string }) {
   const [visible, setVisible] = useState(false);
   if (!value) return <span className="text-muted-foreground">—</span>;
   return (
     <div className="flex items-center gap-1">
-      <span className="max-w-[120px] truncate font-mono text-xs">
+      <span className="max-w-[100px] truncate font-mono text-xs">
         {visible ? value : "••••••••"}
       </span>
       <Button
@@ -157,6 +176,7 @@ export function ClientAccessPanel({
   });
 
   const kind = watch("kind");
+  const renewal = isRenewalAccessKind(kind);
 
   function closeForm() {
     setOpen(false);
@@ -188,7 +208,7 @@ export function ClientAccessPanel({
   }
 
   function handleDelete(id: string) {
-    if (!confirm("Excluir este acesso do cliente?")) return;
+    if (!confirm("Excluir este acesso?")) return;
     startTransition(async () => {
       const result = await deleteClientAccess(id, clientId);
       if (result.ok) {
@@ -204,8 +224,8 @@ export function ClientAccessPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Instagram, Registro.br e outros — login, senha, vencimento e link do
-          painel.
+          Instagram, Registro.br, domínios, hospedagem e outros — login e senha
+          obrigatórios; vencimento e valor para renovações.
         </p>
         <Button
           type="button"
@@ -244,9 +264,9 @@ export function ClientAccessPanel({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {kinds.map(([v, label]) => (
+                        {kindOrder.map((v) => (
                           <SelectItem key={v} value={v}>
-                            {label}
+                            {clientAccessKindLabels[v]}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -257,7 +277,9 @@ export function ClientAccessPanel({
               <div className="space-y-2 sm:col-span-2">
                 <Label>Identificação *</Label>
                 <Input
-                  placeholder={kindPlaceholders[kind]}
+                  placeholder={
+                    labelPlaceholders[kind] ?? "Nome do acesso ou serviço"
+                  }
                   {...register("label")}
                 />
                 {errors.label && (
@@ -265,19 +287,25 @@ export function ClientAccessPanel({
                 )}
               </div>
               <div className="space-y-2">
-                <Label>Usuário / e-mail</Label>
+                <Label>Login *</Label>
                 <Input
-                  placeholder="login@email.com ou @usuario"
+                  placeholder="usuário ou e-mail"
+                  autoComplete="off"
                   {...register("username")}
                 />
+                {errors.username && (
+                  <p className="text-xs text-destructive">
+                    {errors.username.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label>Senha</Label>
+                <Label>Senha *</Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Senha do painel"
-                    autoComplete="off"
+                    autoComplete="new-password"
                     className="pr-10"
                     {...register("password")}
                   />
@@ -302,19 +330,10 @@ export function ClientAccessPanel({
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label>Data de vencimento</Label>
-                <Input type="date" {...register("next_due_date")} />
-                {errors.next_due_date && (
-                  <p className="text-xs text-destructive">
-                    {errors.next_due_date.message}
-                  </p>
-                )}
-              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>URL do painel</Label>
                 <Input
-                  placeholder={urlPlaceholders[kind]}
+                  placeholder="https://…"
                   {...register("login_url")}
                 />
                 {errors.login_url && (
@@ -323,10 +342,77 @@ export function ClientAccessPanel({
                   </p>
                 )}
               </div>
+
+              {renewal && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Provedor</Label>
+                    <Input
+                      placeholder="Registro.br, Hostinger…"
+                      {...register("provider")}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Data de vencimento *</Label>
+                    <Input type="date" {...register("next_due_date")} />
+                    {errors.next_due_date && (
+                      <p className="text-xs text-destructive">
+                        {errors.next_due_date.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ciclo</Label>
+                    <Controller
+                      control={control}
+                      name="billing_cycle"
+                      render={({ field }) => (
+                        <Select
+                          value={field.value ?? "yearly"}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cycles.map(([v, label]) => (
+                              <SelectItem key={v} value={v}>
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Valor (R$)</Label>
+                    <Input placeholder="89,90" {...register("amount")} />
+                    {errors.amount && (
+                      <p className="text-xs text-destructive">
+                        {errors.amount.message}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {!renewal && (
+                <div className="space-y-2">
+                  <Label>Data de vencimento</Label>
+                  <Input type="date" {...register("next_due_date")} />
+                  {errors.next_due_date && (
+                    <p className="text-xs text-destructive">
+                      {errors.next_due_date.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-2 sm:col-span-3">
                 <Label>Observações</Label>
                 <Input
-                  placeholder="2FA no celular do cliente · quem renova…"
+                  placeholder="2FA, quem renova, vault…"
                   {...register("notes")}
                 />
               </div>
@@ -354,9 +440,10 @@ export function ClientAccessPanel({
               <TableRow>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Identificação</TableHead>
-                <TableHead>Usuário</TableHead>
+                <TableHead>Login</TableHead>
                 <TableHead>Senha</TableHead>
                 <TableHead>Vencimento</TableHead>
+                <TableHead>Valor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-[88px]" />
               </TableRow>
@@ -371,8 +458,8 @@ export function ClientAccessPanel({
                     {clientAccessKindLabels[a.kind]}
                   </TableCell>
                   <TableCell className="font-medium">{a.label}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {a.username ?? "—"}
+                  <TableCell className="max-w-[140px] truncate text-muted-foreground">
+                    {a.username}
                   </TableCell>
                   <TableCell>
                     <PasswordCell value={a.password} />
@@ -380,6 +467,7 @@ export function ClientAccessPanel({
                   <TableCell>
                     {a.next_due_date ? formatDate(a.next_due_date) : "—"}
                   </TableCell>
+                  <TableCell>{formatCurrency(a.amount)}</TableCell>
                   <TableCell>
                     <DueBadge
                       dueDate={a.next_due_date}

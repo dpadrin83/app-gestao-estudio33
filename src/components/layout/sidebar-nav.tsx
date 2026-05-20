@@ -25,7 +25,7 @@ const items: Item[] = [
   { href: "/clients",   label: "Clientes",  icon: Users,           dot: "bg-brand-orange" },
   { href: "/projects",  label: "Projetos",  icon: FolderKanban,    dot: "bg-brand-purple" },
   { href: "/schedule",  label: "Cronograma", icon: GanttChart,     dot: "bg-brand-blue" },
-  { href: "/services",  label: "Domínios",   icon: Globe,          dot: "bg-brand-pink" },
+  { href: "/services",  label: "Acessos",    icon: Globe,          dot: "bg-brand-pink" },
   { href: "/finance",   label: "Financeiro", icon: Wallet,         dot: "bg-brand-yellow" },
   { href: "/settings",  label: "Configurações", icon: Settings,   dot: "bg-muted-foreground" },
 ];

@@ -24,9 +24,9 @@ export async function listUpcomingRenewals(
   const todayStr = format(today, "yyyy-MM-dd");
 
   const { data, error } = await supabase
-    .from("client_services")
+    .from("client_access")
     .select(
-      "id, name, kind, next_due_date, amount, currency, client:clients(id, name)",
+      "id, label, kind, next_due_date, amount, currency, client:clients(id, name)",
     )
     .eq("is_active", true)
     .gte("next_due_date", todayStr)
@@ -54,7 +54,7 @@ export async function listUpcomingRenewals(
       | undefined;
     return {
       id: row.id,
-      name: row.name,
+      name: row.label,
       kind: row.kind,
       nextDueDate: format(due, "d MMM yyyy", { locale: ptBR }),
       daysUntil,

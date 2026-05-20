@@ -140,7 +140,18 @@ export const projectLinkKindLabels = {
   other: "Outro",
 } as const;
 
-export const clientServiceKindLabels = {
+export const clientAccessBillingCycleLabels = {
+  monthly: "mensal",
+  yearly: "anual",
+  other: "outro",
+} as const;
+
+/** @deprecated Use clientAccessBillingCycleLabels */
+export const clientServiceBillingCycleLabels = clientAccessBillingCycleLabels;
+
+export const clientAccessKindLabels = {
+  instagram: "Instagram",
+  registro_br: "Registro.br",
   domain_br: "Domínio .br",
   domain: "Domínio",
   hosting: "Hospedagem",
@@ -150,17 +161,8 @@ export const clientServiceKindLabels = {
   other: "Outro",
 } as const;
 
-export const clientServiceBillingCycleLabels = {
-  monthly: "mensal",
-  yearly: "anual",
-  other: "outro",
-} as const;
-
-export const clientAccessKindLabels = {
-  instagram: "Instagram",
-  registro_br: "Registro.br",
-  other: "Outro",
-} as const;
+/** @deprecated Use clientAccessKindLabels */
+export const clientServiceKindLabels = clientAccessKindLabels;
 
 export const taskStatusLabels = {
   todo: "a fazer",

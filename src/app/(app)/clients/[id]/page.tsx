@@ -5,10 +5,8 @@ import { ClientForm } from "@/components/forms/client-form";
 import { ClientStatusBadge } from "@/components/client-status-badge";
 import { Card } from "@/components/ui/card";
 import { getClient } from "@/lib/actions/clients";
-import { listClientServices } from "@/lib/actions/client-services";
 import { listClientAccess } from "@/lib/actions/client-access";
 import { listProjectsByClient } from "@/lib/actions/projects";
-import { ClientServicesPanel } from "@/components/clients/client-services-panel";
 import { ClientAccessPanel } from "@/components/clients/client-access-panel";
 import { PortalAccessPanel } from "@/components/clients/portal-access-panel";
 import { ClientProjectsList } from "../client-projects-list";
@@ -27,9 +25,8 @@ export default async function EditClientPage({
   const client = await getClient(id);
   if (!client) return notFound();
 
-  const [projects, services, access] = await Promise.all([
+  const [projects, access] = await Promise.all([
     listProjectsByClient(id),
-    listClientServices(id),
     listClientAccess(id),
   ]);
 
@@ -69,13 +66,6 @@ export default async function EditClientPage({
       </h2>
       <div className="mb-10">
         <ClientAccessPanel clientId={id} access={access} />
-      </div>
-
-      <h2 className="mb-6 text-xl font-semibold tracking-tight">
-        Domínios e hospedagem
-      </h2>
-      <div className="mb-10">
-        <ClientServicesPanel clientId={id} services={services} />
       </div>
 
       <h2 className="mb-3 text-xl font-semibold tracking-tight">Portal do cliente</h2>

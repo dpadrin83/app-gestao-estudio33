@@ -9,43 +9,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { listAllClientServices } from "@/lib/actions/client-services";
+import { listAllClientAccess } from "@/lib/actions/client-access";
 import {
   getServiceDueStatus,
   serviceDueLabel,
 } from "@/lib/client-services/due-status";
 import {
-  clientServiceBillingCycleLabels,
-  clientServiceKindLabels,
+  clientAccessBillingCycleLabels,
+  clientAccessKindLabels,
   formatCurrency,
   formatDate,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default async function ServicesPage() {
-  const services = await listAllClientServices();
+  const access = await listAllClientAccess();
 
-  const overdue = services.filter(
-    (s) => getServiceDueStatus(s.next_due_date, s.is_active).status === "overdue",
+  const overdue = access.filter(
+    (a) =>
+      a.next_due_date &&
+      getServiceDueStatus(a.next_due_date, a.is_active).status === "overdue",
   );
-  const soon = services.filter(
-    (s) => getServiceDueStatus(s.next_due_date, s.is_active).status === "soon",
+  const soon = access.filter(
+    (a) =>
+      a.next_due_date &&
+      getServiceDueStatus(a.next_due_date, a.is_active).status === "soon",
   );
 
   return (
     <>
       <PageHeader
         eyebrow="Operação"
-        title="Domínios e hospedagem"
-        description="Vencimentos de registro .br, hospedagem, e-mail e SSL — por cliente, ordenados pela data mais próxima."
+        title="Acessos e vencimentos"
+        description="Domínios, hospedagem, Registro.br e outros com data de renovação — por cliente."
       />
 
       <div className="mb-8 grid gap-3 sm:grid-cols-3">
         <Card className="p-5">
           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Ativos
+            Com vencimento
           </p>
-          <p className="mt-2 font-mono text-2xl font-bold">{services.length}</p>
+          <p className="mt-2 font-mono text-2xl font-bold">{access.length}</p>
         </Card>
         <Card className="border-destructive/30 bg-destructive/5 p-5">
           <p className="font-mono text-[10px] uppercase tracking-wider text-destructive">
@@ -65,13 +69,13 @@ export default async function ServicesPage() {
         </Card>
       </div>
 
-      {services.length === 0 ? (
+      {access.length === 0 ? (
         <Card className="p-10 text-center text-sm text-muted-foreground">
-          Nenhum serviço cadastrado. Abra um{" "}
+          Nenhum acesso com vencimento cadastrado. Abra um{" "}
           <Link href="/clients" className="text-brand-orange hover:underline">
             cliente
           </Link>{" "}
-          e use a seção Domínios e hospedagem.
+          e use a seção Acessos do cliente.
         </Card>
       ) : (
         <Card className="overflow-hidden">
@@ -80,7 +84,8 @@ export default async function ServicesPage() {
               <TableRow>
                 <TableHead>Cliente</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead>Nome</TableHead>
+                <TableHead>Identificação</TableHead>
+                <TableHead>Login</TableHead>
                 <TableHead>Provedor</TableHead>
                 <TableHead>Vencimento</TableHead>
                 <TableHead>Valor</TableHead>
@@ -88,35 +93,40 @@ export default async function ServicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map((s) => {
+              {access.map((a) => {
                 const { status, daysUntil } = getServiceDueStatus(
-                  s.next_due_date,
-                  s.is_active,
+                  a.next_due_date!,
+                  a.is_active,
                 );
                 return (
-                  <TableRow key={s.id}>
+                  <TableRow key={a.id}>
                     <TableCell>
                       <Link
-                        href={`/clients/${s.client_id}`}
+                        href={`/clients/${a.client_id}`}
                         className="font-medium hover:text-brand-orange hover:underline"
                       >
-                        {s.client?.name ?? "—"}
+                        {a.client?.name ?? "—"}
                       </Link>
                     </TableCell>
                     <TableCell className="font-mono text-[10px] uppercase text-muted-foreground">
-                      {clientServiceKindLabels[s.kind]}
+                      {clientAccessKindLabels[a.kind]}
                     </TableCell>
-                    <TableCell className="font-medium">{s.name}</TableCell>
+                    <TableCell className="font-medium">{a.label}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {s.provider ?? "—"}
+                      {a.username}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {a.provider ?? "—"}
                     </TableCell>
                     <TableCell>
-                      {formatDate(s.next_due_date)}
-                      <span className="ml-1 text-xs text-muted-foreground">
-                        ({clientServiceBillingCycleLabels[s.billing_cycle]})
-                      </span>
+                      {formatDate(a.next_due_date!)}
+                      {a.billing_cycle && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          ({clientAccessBillingCycleLabels[a.billing_cycle]})
+                        </span>
+                      )}
                     </TableCell>
-                    <TableCell>{formatCurrency(s.amount)}</TableCell>
+                    <TableCell>{formatCurrency(a.amount)}</TableCell>
                     <TableCell>
                       <span
                         className={cn(
