@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   activityStatusBarClass,
@@ -7,9 +7,15 @@ import {
   ganttMonthLabels,
   ganttRange,
 } from "@/lib/gantt-utils";
-import type { PortfolioGanttData } from "@/lib/queries/portfolio-gantt";
+import type {
+  PortfolioGanttData,
+  PortfolioGanttSort,
+} from "@/lib/queries/portfolio-gantt";
+import { PortfolioGanttControls } from "@/components/dashboard/portfolio-gantt-controls";
+import { PortfolioGanttBar } from "@/components/dashboard/portfolio-gantt-bar";
+import { schedulePath } from "@/lib/app-paths";
 import { cn } from "@/lib/utils";
-import { CalendarRange } from "lucide-react";
+import { AlertTriangle, CalendarRange } from "lucide-react";
 
 const BAR_COLORS = [
   "bg-gradient-to-r from-brand-orange to-brand-pink",
@@ -19,12 +25,24 @@ const BAR_COLORS = [
   "bg-gradient-to-r from-brand-magenta to-brand-orange",
 ];
 
-export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) {
+export function DashboardPortfolioGantt({
+  data,
+  clients,
+  selectedClientId,
+  selectedSort,
+}: {
+  data: PortfolioGanttData;
+  clients: { id: string; name: string }[];
+  selectedClientId?: string;
+  selectedSort: PortfolioGanttSort;
+}) {
   const { rangeStart, totalDays } = ganttRange(data.bars);
   const rangeEnd = new Date(
     rangeStart.getTime() + (totalDays - 1) * 86_400_000,
   );
   const months = ganttMonthLabels(rangeStart, rangeEnd);
+  const todayLeft = todayLinePercent(rangeStart, totalDays);
+  const scheduleHref = schedulePath(selectedClientId);
 
   return (
     <section className="card-glass mb-9 overflow-hidden rounded-3xl p-5 md:p-6">
@@ -38,19 +56,39 @@ export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) 
           </h2>
         </div>
         <Link
-          href="/schedule"
+          href={scheduleHref}
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition hover:text-foreground"
         >
           <CalendarRange className="size-3.5" />
-          Cronograma completo
+          {selectedClientId ? "Cronograma do cliente" : "Cronograma completo"}
         </Link>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+      <PortfolioGanttControls
+        clients={clients}
+        selectedClientId={selectedClientId}
+        selectedSort={selectedSort}
+      />
+
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryKpi
-          label="Projetos em andamento"
+          label="Em andamento"
           value={String(data.projectsInProgress).padStart(2, "0")}
-          hint={`${data.projectsWithSchedule} com cronograma`}
+          hint={
+            data.projectsDueThisWeek > 0
+              ? `${data.projectsWithSchedule} com cronograma · ${data.projectsDueThisWeek} vencem esta semana`
+              : `${data.projectsWithSchedule} com cronograma`
+          }
+        />
+        <SummaryKpi
+          label="Atrasados"
+          value={String(data.projectsOverdue).padStart(2, "0")}
+          hint={
+            data.projectsOverdue > 0
+              ? "atividades ou prazo vencido"
+              : "nenhum atraso"
+          }
+          warn={data.projectsOverdue > 0}
         />
         <SummaryKpi
           label="Dias para concluir todos"
@@ -64,33 +102,64 @@ export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) 
           }
           accent
         />
+        <SummaryKpi
+          label="Sem cronograma"
+          value={String(data.projectsWithoutSchedule).padStart(2, "0")}
+          hint="precisam de atividades"
+        />
       </div>
 
       {data.rows.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          Nenhum projeto em produção.{" "}
-          <Link href="/projects/new" className="text-brand-orange hover:underline">
-            Criar projeto
-          </Link>
+          {selectedClientId
+            ? "Nenhum projeto em produção para este cliente."
+            : "Nenhum projeto em produção. "}
+          {!selectedClientId && (
+            <Link
+              href="/projects/new"
+              className="text-brand-orange hover:underline"
+            >
+              Criar projeto
+            </Link>
+          )}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border/80 bg-black/20">
-          <div className="min-w-[720px] p-4">
+          <div className="min-w-[800px] p-4">
             <div className="mb-3 flex justify-between font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
               <span>{format(rangeStart, "dd MMM", { locale: ptBR })}</span>
-              <span>timeline · {totalDays} dias</span>
+              <span className="inline-flex items-center gap-3">
+                {todayLeft != null && (
+                  <span className="inline-flex items-center gap-1 text-brand-pink">
+                    <span className="inline-block h-2 w-0.5 bg-brand-pink" />
+                    hoje
+                  </span>
+                )}
+                {data.projectsDueThisWeek > 0 && (
+                  <span className="inline-flex items-center gap-1 text-warning">
+                    <span className="inline-block size-2 rounded-sm ring-2 ring-warning/70" />
+                    esta semana
+                  </span>
+                )}
+                timeline · {totalDays} dias
+              </span>
             </div>
 
             {data.bars.length > 0 && (
-              <div className="mb-3 flex border-b border-border/60 pb-2 pl-[min(200px,28%)]">
-                {months.map((m) => (
-                  <span
-                    key={m}
-                    className="flex-1 text-center font-mono text-[9px] text-muted-foreground"
-                  >
-                    {m}
-                  </span>
-                ))}
+              <div className="mb-3 grid grid-cols-[minmax(160px,1.2fr)_48px_1fr_72px] gap-3 border-b border-border/60 pb-2">
+                <span />
+                <span />
+                <div className="flex">
+                  {months.map((m) => (
+                    <span
+                      key={m}
+                      className="flex-1 text-center font-mono text-[9px] text-muted-foreground"
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-right font-mono text-[9px]">prazo</span>
               </div>
             )}
 
@@ -105,13 +174,32 @@ export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) 
                 return (
                   <li
                     key={row.projectId}
-                    className="grid grid-cols-[minmax(160px,1.4fr)_1fr_72px] items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-white/[0.03]"
+                    className={cn(
+                      "grid grid-cols-[minmax(160px,1.2fr)_48px_1fr_72px] items-center gap-3 rounded-lg px-1 py-1.5 hover:bg-white/[0.03]",
+                      row.isDueThisWeek &&
+                        !row.isOverdue &&
+                        "bg-warning/[0.06] ring-1 ring-inset ring-warning/20",
+                    )}
                   >
                     <div className="min-w-0">
                       <Link
                         href={`/projects/${row.projectId}#cronograma`}
-                        className="block truncate text-sm font-medium hover:text-brand-orange"
+                        className="flex items-center gap-1.5 truncate text-sm font-medium hover:text-brand-orange"
                       >
+                        {row.isOverdue && (
+                          <AlertTriangle
+                            className="size-3.5 shrink-0 text-destructive"
+                            aria-label="Atrasado"
+                          />
+                        )}
+                        {row.isDueThisWeek && !row.isOverdue && (
+                          <span
+                            className="shrink-0 rounded bg-warning/20 px-1 py-0.5 font-mono text-[8px] uppercase tracking-wider text-warning"
+                            title="Vence esta semana"
+                          >
+                            sem
+                          </span>
+                        )}
                         {row.projectName}
                       </Link>
                       <p className="truncate font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -119,20 +207,51 @@ export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) 
                       </p>
                     </div>
 
+                    <div className="flex flex-col items-center gap-0.5">
+                      {row.progressPercent != null ? (
+                        <>
+                          <div className="h-1.5 w-10 overflow-hidden rounded-full bg-secondary/50">
+                            <div
+                              className="h-full rounded-full bg-success"
+                              style={{ width: `${row.progressPercent}%` }}
+                            />
+                          </div>
+                          <span className="font-mono text-[9px] tabular-nums text-muted-foreground">
+                            {row.progressPercent}%
+                          </span>
+                        </>
+                      ) : (
+                        <span className="font-mono text-[9px] text-muted-foreground">
+                          —
+                        </span>
+                      )}
+                    </div>
+
                     <div className="relative h-7 rounded-md bg-secondary/30">
-                      {bar && pos ? (
+                      {todayLeft != null && (
                         <div
-                          className={cn(
-                            "absolute top-1 bottom-1 rounded-md",
+                          className="pointer-events-none absolute top-0 bottom-0 z-10 w-0.5 bg-brand-pink/90"
+                          style={{ left: `${todayLeft}%` }}
+                        />
+                      )}
+                      {bar && pos ? (
+                        <PortfolioGanttBar
+                          startDate={row.startDate}
+                          endDate={row.endDate}
+                          openActivitiesCount={row.openActivitiesCount}
+                          totalActivitiesCount={row.totalActivitiesCount}
+                          progressPercent={row.progressPercent}
+                          isOverdue={row.isOverdue}
+                          isDueThisWeek={row.isDueThisWeek}
+                          colorClass={
                             row.isOverdue
                               ? activityStatusBarClass.delayed
-                              : color,
-                          )}
+                              : color
+                          }
                           style={{
                             left: `${pos.left}%`,
                             width: `${pos.width}%`,
                           }}
-                          title={`${bar.start} → ${bar.end}`}
                         />
                       ) : (
                         <span className="absolute inset-0 flex items-center justify-center font-mono text-[9px] uppercase text-muted-foreground">
@@ -148,6 +267,9 @@ export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) 
                             className={cn(
                               "font-mono text-sm font-semibold tabular-nums",
                               row.isOverdue && "text-destructive",
+                              row.isDueThisWeek &&
+                                !row.isOverdue &&
+                                "text-warning",
                             )}
                           >
                             {row.daysToComplete === 0
@@ -180,30 +302,48 @@ export function DashboardPortfolioGantt({ data }: { data: PortfolioGanttData }) 
   );
 }
 
+function todayLinePercent(rangeStart: Date, totalDays: number): number | null {
+  const today = startOfDay(new Date());
+  const left =
+    (differenceInCalendarDays(today, rangeStart) / totalDays) * 100;
+  if (left < 0 || left > 100) return null;
+  return left;
+}
+
 function SummaryKpi({
   label,
   value,
   hint,
   accent,
+  warn,
 }: {
   label: string;
   value: string;
   hint: string;
   accent?: boolean;
+  warn?: boolean;
 }) {
   return (
     <div
       className={cn(
         "rounded-2xl border border-border px-4 py-3.5",
-        accent
-          ? "bg-gradient-to-br from-brand-purple/15 to-brand-orange/5"
-          : "bg-card/40",
+        accent &&
+          "bg-gradient-to-br from-brand-purple/15 to-brand-orange/5",
+        warn && "border-destructive/40 bg-destructive/5",
+        !accent && !warn && "bg-card/40",
       )}
     >
       <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 font-mono text-3xl font-bold tracking-tight">{value}</p>
+      <p
+        className={cn(
+          "mt-1 font-mono text-3xl font-bold tracking-tight",
+          warn && "text-destructive",
+        )}
+      >
+        {value}
+      </p>
       <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
     </div>
   );

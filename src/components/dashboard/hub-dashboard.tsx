@@ -8,7 +8,10 @@ import { formatCurrency, formatDuration, projectStatusLabels } from "@/lib/forma
 import { ProjectRowTimer } from "@/app/(app)/projects/project-row-timer";
 import { DashboardInsights } from "@/components/ai/dashboard-insights";
 import { DashboardPortfolioGantt } from "@/components/dashboard/dashboard-portfolio-gantt";
-import type { PortfolioGanttData } from "@/lib/queries/portfolio-gantt";
+import type {
+  PortfolioGanttData,
+  PortfolioGanttSort,
+} from "@/lib/queries/portfolio-gantt";
 import { cn } from "@/lib/utils";
 import type { ProjectListItem } from "@/lib/queries/projects-list";
 import type { SmartAlert } from "@/lib/alerts/smart-alerts";
@@ -43,6 +46,9 @@ const PROJECT_ACCENTS = [
 
 type HubDashboardProps = HubDashboardData & {
   portfolioGantt: PortfolioGanttData;
+  portfolioGanttClients: { id: string; name: string }[];
+  portfolioClientId?: string;
+  portfolioSort: PortfolioGanttSort;
   aiConfigured: boolean;
   smartAlerts: SmartAlert[];
 };
@@ -65,6 +71,9 @@ export function HubDashboard({
   activeSession,
   renewals,
   portfolioGantt,
+  portfolioGanttClients,
+  portfolioClientId,
+  portfolioSort,
   aiConfigured,
   smartAlerts,
 }: HubDashboardProps) {
@@ -107,7 +116,12 @@ export function HubDashboard({
         </div>
       )}
 
-      <DashboardPortfolioGantt data={portfolioGantt} />
+      <DashboardPortfolioGantt
+        data={portfolioGantt}
+        clients={portfolioGanttClients}
+        selectedClientId={portfolioClientId}
+        selectedSort={portfolioSort}
+      />
 
       {/* Aurora grid */}
       <div className="mb-9 grid grid-cols-1 gap-3.5 lg:grid-cols-12">
