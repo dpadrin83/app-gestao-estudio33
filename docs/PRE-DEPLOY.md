@@ -129,7 +129,7 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 19 | `20260521140000_project_deliverable_plan.sql` |
 | 20 | `20260521150000_studio_deliverable_catalog.sql` |
 | 21 | `20260521160000_deliverable_catalog_groups.sql` |
-| 22 | `20260521170000_seed_branding_catalog_areas.sql` (opcional — áreas vazias branding) |
+| 22 | `20260521170000_seed_branding_catalog_areas.sql` (noop — não usar) |
 | 23 | `20260521180000_seed_onboarding_catalog_steps.sql` (área Onboarding + 5 etapas) |
 | 24 | `20260521190000_seed_branding_strategy_catalog_steps.sql` (Branding e Estratégia de Marca, 18 etapas) |
 | 25 | `20260521200000_rename_branding_area.sql` (só se já rodou o nome antigo da área) |
@@ -138,5 +138,6 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 28 | `20260521230000_fix_digital_solutions_area.sql` (opcional — correção nome antigo) |
 | 29 | `20260521240000_digital_solutions_detailed_steps.sql` (Soluções Digitais, 20 etapas) |
 | 30 | `20260521250000_digital_client_approval_gates.sql` (marca interno vs aprovação cliente) |
+| 31 | `20260521260000_remove_duplicate_empty_catalog_areas.sql` (remove 7 áreas vazias duplicadas) |
 
 Detalhes: [deploy.md](./deploy.md)
