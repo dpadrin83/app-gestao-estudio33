@@ -111,6 +111,21 @@ export type ClientServiceWithClient = ClientService & {
   client: Pick<Client, "id" | "name">;
 };
 
+export type ClientAccessKind = "instagram" | "registro_br" | "other";
+
+export interface ClientAccess {
+  id: string;
+  client_id: string;
+  kind: ClientAccessKind;
+  label: string;
+  login_url: string | null;
+  username: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type PaymentStatus = "to_invoice" | "invoiced" | "received";
 
 export interface TimeSession {

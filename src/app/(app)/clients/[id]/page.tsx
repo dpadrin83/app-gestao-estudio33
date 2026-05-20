@@ -6,8 +6,10 @@ import { ClientStatusBadge } from "@/components/client-status-badge";
 import { Card } from "@/components/ui/card";
 import { getClient } from "@/lib/actions/clients";
 import { listClientServices } from "@/lib/actions/client-services";
+import { listClientAccess } from "@/lib/actions/client-access";
 import { listProjectsByClient } from "@/lib/actions/projects";
 import { ClientServicesPanel } from "@/components/clients/client-services-panel";
+import { ClientAccessPanel } from "@/components/clients/client-access-panel";
 import { PortalAccessPanel } from "@/components/clients/portal-access-panel";
 import { ClientProjectsList } from "../client-projects-list";
 import {
@@ -25,9 +27,10 @@ export default async function EditClientPage({
   const client = await getClient(id);
   if (!client) return notFound();
 
-  const [projects, services] = await Promise.all([
+  const [projects, services, access] = await Promise.all([
     listProjectsByClient(id),
     listClientServices(id),
+    listClientAccess(id),
   ]);
 
   return (
@@ -62,6 +65,13 @@ export default async function EditClientPage({
       <ClientProjectsList projects={projects} />
 
       <h2 className="mb-6 mt-10 text-xl font-semibold tracking-tight">
+        Acessos do cliente
+      </h2>
+      <div className="mb-10">
+        <ClientAccessPanel clientId={id} access={access} />
+      </div>
+
+      <h2 className="mb-6 text-xl font-semibold tracking-tight">
         Domínios e hospedagem
       </h2>
       <div className="mb-10">

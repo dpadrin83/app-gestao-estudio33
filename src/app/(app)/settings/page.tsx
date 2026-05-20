@@ -1,33 +1,23 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { SettingsForm } from "@/components/forms/settings-form";
-import { DeployStatusCard } from "@/components/settings/deploy-status-card";
-import { DataPurgePanel } from "@/components/settings/data-purge-panel";
 import { getAppHourlyRate } from "@/lib/actions/settings";
-import { getPublishedDataStats } from "@/lib/actions/data-purge";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 export default async function SettingsPage() {
-  const [hourlyRate, dataStats] = await Promise.all([
-    getAppHourlyRate(),
-    getPublishedDataStats(),
-  ]);
+  const hourlyRate = await getAppHourlyRate();
 
   return (
     <>
       <PageHeader
         eyebrow="Configurações"
         title="Configurações do Hub"
-        description="Ajustes globais da operação — sem precisar mexer no Supabase."
+        description="Ajustes globais da operação."
       />
-      <div className="mb-8 grid gap-6 lg:grid-cols-2">
+      <div className="mb-8 max-w-lg">
         <SettingsForm hourlyRate={hourlyRate} />
-        <DeployStatusCard />
-      </div>
-      <div className="mb-8">
-        <DataPurgePanel stats={dataStats} />
       </div>
 
       <Card className="mb-8 flex flex-col justify-between gap-4 p-6 sm:flex-row sm:items-center">

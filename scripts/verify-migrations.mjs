@@ -46,6 +46,7 @@ const TABLES = [
   "project_work_items",
   "prompt_templates",
   "client_services",
+  "client_access",
 ];
 
 async function main() {

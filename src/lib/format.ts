@@ -156,6 +156,12 @@ export const clientServiceBillingCycleLabels = {
   other: "outro",
 } as const;
 
+export const clientAccessKindLabels = {
+  instagram: "Instagram",
+  registro_br: "Registro.br",
+  other: "Outro",
+} as const;
+
 export const taskStatusLabels = {
   todo: "a fazer",
   doing: "fazendo",

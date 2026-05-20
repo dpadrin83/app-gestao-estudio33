@@ -123,5 +123,6 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 13 | `20260520160000_client_services.sql` |
 | 14 | `20260520170000_client_assets_storage.sql` |
 | 15 | `20260521100000_gantt_recalc_respect_edits.sql` |
+| 16 | `20260521110000_client_access.sql` |
 
 Detalhes: [deploy.md](./deploy.md)
