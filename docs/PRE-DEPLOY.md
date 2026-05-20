@@ -139,5 +139,6 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 29 | `20260521240000_digital_solutions_detailed_steps.sql` (Soluções Digitais, 20 etapas) |
 | 30 | `20260521250000_digital_client_approval_gates.sql` (marca interno vs aprovação cliente) |
 | 31 | `20260521260000_remove_duplicate_empty_catalog_areas.sql` (remove 7 áreas vazias duplicadas) |
+| 32 | `20260521270000_seed_content_copy_catalog_steps.sql` (Conteúdo, Copy e Roteiro, 17 etapas) |
 
 Detalhes: [deploy.md](./deploy.md)
