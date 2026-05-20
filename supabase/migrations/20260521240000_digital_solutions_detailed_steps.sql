@@ -18,7 +18,7 @@ begin
   insert into public.deliverable_catalog_groups (name, description, sort_order)
   select
     'Soluções Digitais',
-    'Sites, apps e sistemas: PRD, protótipo HTML, UX/UI, depois GitHub/Supabase/Vercel e desenvolvimento.',
+    'Sites, apps e sistemas. Interno até versão final; cliente aprova design final e homologação em staging.',
     20
   where not exists (
     select 1 from public.deliverable_catalog_groups g
@@ -55,49 +55,49 @@ begin
     from (values
       -- Gestor / PM (antes do design)
       (0,  'Registro de domínio e DNS',                 1, 'pm-orquestrador', 'web_design', 'link',
-        'Gestor: Registro.br, DNS, apontamentos.'),
+        '[INTERNO] Gestor: Registro.br, DNS, apontamentos.'),
       (1,  'Hospedagem e contas (contratação)',         1, 'pm-orquestrador', 'web_design', 'doc',
-        'Gestor: abrir contas Vercel/host e guardar acessos no Hub.'),
+        '[INTERNO] Gestor: contas Vercel/host e acessos no Hub.'),
 
-      -- UX/UI + produto (sem DEV)
+      -- UX/UI + produto (sem DEV) — tudo interno até versão final
       (2,  'Briefing digital e requisitos',             1, 'ui-ux-digital',   'web_design', 'doc',
-        'Site, app ou sistema — objetivo, integrações, conteúdo.'),
+        '[INTERNO] Escopo site, app ou sistema.'),
       (3,  'PRD digital',                               2, 'ui-ux-digital',   'web_design', 'doc',
-        'Prompt: PRD produto (páginas, fluxos, regras, fora de escopo). Briefing Studio.'),
+        '[INTERNO] Prompt: PRD produto. Briefing Studio.'),
       (4,  'Sitemap e arquitetura de informação',       1, 'ui-ux-digital',   'web_design', 'doc',
-        'Mapa de páginas e navegação.'),
+        '[INTERNO] Mapa de páginas e navegação.'),
       (5,  'Wireframes (fluxos e telas-chave)',         2, 'ui-ux-digital',   'web_design', 'design',
-        'Baixa fidelidade — validar fluxo antes do visual.'),
+        '[INTERNO] Baixa fidelidade — não enviar WIP ao cliente.'),
       (6,  'UI e protótipo Figma',                      4, 'ui-ux-digital',   'web_design', 'design',
-        'Alta fidelidade responsiva.'),
+        '[INTERNO] Alta fidelidade — versão final na etapa de aprovação.'),
       (7,  'Protótipo HTML de teste',                   2, 'ui-ux-digital',   'web_design', 'code',
-        'Versão navegável em HTML/CSS (ou export Figma) para validar antes do código real.'),
-      (8,  'Aprovação do design e do protótipo',        1, 'pm-orquestrador', 'web_design', 'doc',
-        'Gestor: enviar ao cliente (portal) e registrar aprovação.'),
+        '[INTERNO] HTML navegável final junto com Figma para aprovação.'),
+      (8,  'Aprovação do cliente — design digital final', 1, 'pm-orquestrador', 'web_design', 'doc',
+        '[APROVAÇÃO CLIENTE] Portal: Figma + HTML finalizados. Sem rascunhos.'),
       (9,  'Handoff design → desenvolvimento',          1, 'ui-ux-digital',   'web_design', 'doc',
-        'Assets, tokens, PRD final e critérios de aceite — libera fase DEV.'),
+        '[INTERNO] Assets, tokens, PRD — libera DEV após OK do cliente.'),
 
-      -- DEV: ferramentas e preparação
+      -- DEV: ferramentas e preparação (tudo interno)
       (10, 'Configuração GitHub (repositório)',         1, 'arquiteto-dev',   'web_dev',    'code',
-        'Repo privado, branches, README, .gitignore.'),
+        '[INTERNO] Repo, branches, README.'),
       (11, 'Configuração Supabase (projeto e base)',    1, 'arquiteto-dev',   'web_dev',    'code',
-        'Projeto, auth, tabelas iniciais, RLS se aplicável.'),
+        '[INTERNO] Projeto, auth, DB, RLS.'),
       (12, 'Configuração Vercel (deploy e domínio)',    1, 'arquiteto-dev',   'web_dev',    'code',
-        'Projeto Vercel, variáveis de ambiente, domínio customizado.'),
+        '[INTERNO] Projeto Vercel, env, domínio.'),
       (13, 'Preparação do ambiente de desenvolvimento', 2, 'arquiteto-dev',   'web_dev',    'code',
-        'Next.js (ou stack definida), CI, estrutura de pastas, env local.'),
+        '[INTERNO] Next.js, CI, estrutura, env local.'),
       (14, 'Implementação (site, app ou sistema)',      8, 'arquiteto-dev',   'web_dev',    'code',
-        'Código de produção conforme PRD e design aprovados.'),
+        '[INTERNO] Código de produção.'),
       (15, 'CMS, APIs e integrações',                   3, 'arquiteto-dev',   'web_dev',    'code',
-        'Painéis, formulários, webhooks, APIs de terceiros.'),
+        '[INTERNO] Painéis, formulários, integrações.'),
       (16, 'SSL, performance e SEO técnico',            2, 'arquiteto-dev',   'web_dev',    'code',
-        'HTTPS, Core Web Vitals, meta técnico, sitemap.'),
-      (17, 'Testes e homologação',                      2, 'arquiteto-dev',   'web_dev',    'doc',
-        'Fluxos críticos, mobile, cross-browser.'),
+        '[INTERNO] QA técnico antes de staging.'),
+      (17, 'Homologação do cliente (staging)',          2, 'pm-orquestrador', 'web_dev',    'doc',
+        '[APROVAÇÃO CLIENTE] URL staging — versão final. Testes internos já feitos.'),
       (18, 'Deploy e go-live',                          1, 'arquiteto-dev',   'web_dev',    'link',
-        'Produção publicada e monitoração básica.'),
+        '[INTERNO] Produção após OK em homologação.'),
       (19, 'Entrega e treinamento ao cliente',          1, 'pm-orquestrador', 'web_dev',    'doc',
-        'Acessos admin, manual rápido, encerramento.')
+        '[INTERNO] Acessos e manual — cliente já validou em staging.')
     ) as v(sort_order, name, days, prof_slug, svc_line, dtype, notes)
   loop
     insert into public.studio_deliverable_catalog (

@@ -137,5 +137,6 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 27 | `20260521220000_seed_web_design_catalog_steps.sql` (noop — ver 212400) |
 | 28 | `20260521230000_fix_digital_solutions_area.sql` (opcional — correção nome antigo) |
 | 29 | `20260521240000_digital_solutions_detailed_steps.sql` (Soluções Digitais, 20 etapas) |
+| 30 | `20260521250000_digital_client_approval_gates.sql` (marca interno vs aprovação cliente) |
 
 Detalhes: [deploy.md](./deploy.md)
