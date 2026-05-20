@@ -120,6 +120,8 @@ export interface ClientAccess {
   label: string;
   login_url: string | null;
   username: string | null;
+  next_due_date: string | null;
+  password: string | null;
   notes: string | null;
   is_active: boolean;
   created_at: string;

@@ -18,13 +18,19 @@ function normalizeUrl(url: string | undefined) {
 function rowFromForm(
   clientId: string,
   data: ClientAccessFormValues,
+  existing?: Pick<ClientAccess, "password">,
 ): Omit<ClientAccess, "id" | "created_at" | "updated_at"> {
+  const pwd = data.password?.trim();
+  const due = data.next_due_date?.trim();
+
   return {
     client_id: clientId,
     kind: data.kind,
     label: data.label.trim(),
     login_url: normalizeUrl(data.login_url),
     username: data.username?.trim() || null,
+    next_due_date: due || null,
+    password: pwd ? pwd : (existing?.password ?? null),
     notes: data.notes?.trim() || null,
     is_active: data.is_active ?? true,
   };
@@ -36,6 +42,7 @@ export async function listClientAccess(clientId: string): Promise<ClientAccess[]
     .from("client_access")
     .select("*")
     .eq("client_id", clientId)
+    .order("next_due_date", { ascending: true, nullsFirst: false })
     .order("kind", { ascending: true })
     .order("label", { ascending: true });
 
@@ -88,10 +95,18 @@ export async function updateClientAccess(
   }
 
   const supabase = await createSupabaseServerClient();
+  const { data: current } = await supabase
+    .from("client_access")
+    .select("password")
+    .eq("id", id)
+    .single();
+
   const { error } = await supabase
     .from("client_access")
     .update({
-      ...rowFromForm(clientId, parsed.data),
+      ...rowFromForm(clientId, parsed.data, {
+        password: (current?.password as string | null) ?? null,
+      }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);

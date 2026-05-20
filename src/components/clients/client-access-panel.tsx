@@ -13,6 +13,10 @@ import {
   updateClientAccess,
   deleteClientAccess,
 } from "@/lib/actions/client-access";
+import {
+  getServiceDueStatus,
+  serviceDueLabel,
+} from "@/lib/client-services/due-status";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,9 +36,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { clientAccessKindLabels } from "@/lib/format";
+import { clientAccessKindLabels, formatDate } from "@/lib/format";
 import type { ClientAccess } from "@/types/database";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +52,8 @@ const emptyForm: ClientAccessFormValues = {
   label: "",
   login_url: "",
   username: "",
+  next_due_date: "",
+  password: "",
   notes: "",
   is_active: true,
 };
@@ -58,6 +64,8 @@ function accessToForm(a: ClientAccess): ClientAccessFormValues {
     label: a.label,
     login_url: a.login_url ?? "",
     username: a.username ?? "",
+    next_due_date: a.next_due_date?.slice(0, 10) ?? "",
+    password: a.password ?? "",
     notes: a.notes ?? "",
     is_active: a.is_active,
   };
@@ -75,6 +83,54 @@ const urlPlaceholders: Record<ClientAccessFormValues["kind"], string> = {
   other: "https://…",
 };
 
+function DueBadge({
+  dueDate,
+  isActive,
+}: {
+  dueDate: string | null;
+  isActive: boolean;
+}) {
+  if (!dueDate) return <span className="text-muted-foreground">—</span>;
+  const { status, daysUntil } = getServiceDueStatus(dueDate, isActive);
+  return (
+    <span
+      className={cn(
+        "inline-block rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide",
+        status === "overdue" &&
+          "border-destructive/40 bg-destructive/10 text-destructive",
+        status === "soon" &&
+          "border-brand-yellow/40 bg-brand-yellow/10 text-[#FDBA74]",
+        status === "ok" && "border-success/30 bg-success/10 text-success",
+        status === "inactive" && "border-border text-muted-foreground",
+      )}
+    >
+      {serviceDueLabel(daysUntil, status)}
+    </span>
+  );
+}
+
+function PasswordCell({ value }: { value: string | null }) {
+  const [visible, setVisible] = useState(false);
+  if (!value) return <span className="text-muted-foreground">—</span>;
+  return (
+    <div className="flex items-center gap-1">
+      <span className="max-w-[120px] truncate font-mono text-xs">
+        {visible ? value : "••••••••"}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="size-7 shrink-0"
+        onClick={() => setVisible((v) => !v)}
+        title={visible ? "Ocultar senha" : "Mostrar senha"}
+      >
+        {visible ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+      </Button>
+    </div>
+  );
+}
+
 export function ClientAccessPanel({
   clientId,
   access: initial,
@@ -86,6 +142,7 @@ export function ClientAccessPanel({
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -104,12 +161,14 @@ export function ClientAccessPanel({
   function closeForm() {
     setOpen(false);
     setEditingId(null);
+    setShowPassword(false);
     reset(emptyForm);
   }
 
   function startEdit(a: ClientAccess) {
     setEditingId(a.id);
     setOpen(true);
+    setShowPassword(false);
     reset(accessToForm(a));
   }
 
@@ -145,8 +204,8 @@ export function ClientAccessPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Instagram, Registro.br e outros painéis — login, URL e onde guardar a
-          senha (ex.: 1Password). Não cole senha em texto aqui.
+          Instagram, Registro.br e outros — login, senha, vencimento e link do
+          painel.
         </p>
         <Button
           type="button"
@@ -156,6 +215,7 @@ export function ClientAccessPanel({
             if (open && !editingId) closeForm();
             else {
               setEditingId(null);
+              setShowPassword(false);
               reset(emptyForm);
               setOpen(true);
             }
@@ -211,6 +271,46 @@ export function ClientAccessPanel({
                   {...register("username")}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Senha</Label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Senha do painel"
+                    autoComplete="off"
+                    className="pr-10"
+                    {...register("password")}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 size-9"
+                    onClick={() => setShowPassword((v) => !v)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-3.5" />
+                    ) : (
+                      <Eye className="size-3.5" />
+                    )}
+                  </Button>
+                </div>
+                {editingId && (
+                  <p className="text-xs text-muted-foreground">
+                    Deixe em branco para manter a senha atual.
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Data de vencimento</Label>
+                <Input type="date" {...register("next_due_date")} />
+                {errors.next_due_date && (
+                  <p className="text-xs text-destructive">
+                    {errors.next_due_date.message}
+                  </p>
+                )}
+              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>URL do painel</Label>
                 <Input
@@ -226,7 +326,7 @@ export function ClientAccessPanel({
               <div className="space-y-2 sm:col-span-3">
                 <Label>Observações</Label>
                 <Input
-                  placeholder="Vault 1Password · item X · quem tem 2FA…"
+                  placeholder="2FA no celular do cliente · quem renova…"
                   {...register("notes")}
                 />
               </div>
@@ -255,7 +355,9 @@ export function ClientAccessPanel({
                 <TableHead>Tipo</TableHead>
                 <TableHead>Identificação</TableHead>
                 <TableHead>Usuário</TableHead>
-                <TableHead>Observações</TableHead>
+                <TableHead>Senha</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="w-[88px]" />
               </TableRow>
             </TableHeader>
@@ -272,8 +374,17 @@ export function ClientAccessPanel({
                   <TableCell className="text-muted-foreground">
                     {a.username ?? "—"}
                   </TableCell>
-                  <TableCell className="max-w-[240px] truncate text-xs text-muted-foreground">
-                    {a.notes ?? "—"}
+                  <TableCell>
+                    <PasswordCell value={a.password} />
+                  </TableCell>
+                  <TableCell>
+                    {a.next_due_date ? formatDate(a.next_due_date) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <DueBadge
+                      dueDate={a.next_due_date}
+                      isActive={a.is_active}
+                    />
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-0.5">
