@@ -139,7 +139,7 @@ export async function getHubDashboardData(
     getActiveSession(),
     getSmartAlerts(),
     listPendingDeliverables(8),
-    listUpcomingRenewals(45),
+    listUpcomingRenewals(),
     listProjectsEnriched({ status: ["in_progress"] }),
     listFinanceOverview(),
   ]);

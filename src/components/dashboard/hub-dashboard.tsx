@@ -4,7 +4,13 @@ import { ptBR } from "date-fns/locale";
 import { Zap, Calendar, Globe } from "lucide-react";
 import type { HubDashboardData, HubCalendarDay } from "@/lib/queries/dashboard-hub";
 import { initials } from "@/lib/queries/dashboard-hub";
-import { formatCurrency, formatDuration, projectStatusLabels } from "@/lib/format";
+import {
+  clientAccessKindLabels,
+  formatCurrency,
+  formatDuration,
+  projectStatusLabels,
+} from "@/lib/format";
+import type { ClientAccessKind } from "@/types/database";
 import { ProjectRowTimer } from "@/app/(app)/projects/project-row-timer";
 import { DashboardInsights } from "@/components/ai/dashboard-insights";
 import { DashboardPortfolioGantt } from "@/components/dashboard/dashboard-portfolio-gantt";
@@ -478,23 +484,34 @@ export function HubDashboard({
         </section>
       </div>
 
-      {/* Renovações */}
-      {renewals.length > 0 && (
-        <section className="card-glass mb-8 overflow-hidden rounded-2xl border-brand-pink/20">
-          <div className="flex items-center justify-between border-b border-border px-5 py-3">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <Globe className="size-4 text-brand-pink" />
-              Acessos — vencidos e próximos 45 dias
-            </h2>
-            <Link
-              href="/services"
-              className="font-mono text-[10px] uppercase text-brand-orange hover:underline"
-            >
-              ver todos →
-            </Link>
-          </div>
-          <ul className="divide-y divide-border">
-            {renewals.slice(0, 6).map((r) => (
+      {/* Acessos com vencimento */}
+      <section className="card-glass mb-8 overflow-hidden rounded-2xl border-brand-pink/20">
+        <div className="flex items-center justify-between border-b border-border px-5 py-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <Globe className="size-4 text-brand-pink" />
+            Acessos e vencimentos
+            <span className="font-mono text-[10px] font-normal text-muted-foreground">
+              · {renewals.length}
+            </span>
+          </h2>
+          <Link
+            href="/services"
+            className="font-mono text-[10px] uppercase text-brand-orange hover:underline"
+          >
+            ver tabela →
+          </Link>
+        </div>
+        {renewals.length === 0 ? (
+          <p className="px-5 py-4 text-sm text-muted-foreground">
+            Nenhum acesso com data de vencimento. Cadastre em{" "}
+            <Link href="/clients" className="text-brand-orange hover:underline">
+              Clientes
+            </Link>{" "}
+            → Acessos do cliente (domínio, hospedagem, Registro.br…).
+          </p>
+        ) : (
+          <ul className="max-h-[360px] divide-y divide-border overflow-y-auto">
+            {renewals.map((r) => (
               <li
                 key={r.id}
                 className="flex items-center justify-between gap-3 px-5 py-3"
@@ -502,6 +519,11 @@ export function HubDashboard({
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{r.name}</p>
                   <p className="text-xs text-muted-foreground">
+                    <span className="font-mono text-[10px] uppercase">
+                      {clientAccessKindLabels[r.kind as ClientAccessKind] ??
+                        r.kind}
+                    </span>
+                    {" · "}
                     <Link
                       href={`/clients/${r.clientId}`}
                       className="hover:text-brand-orange hover:underline"
@@ -526,8 +548,8 @@ export function HubDashboard({
                   className={cn(
                     "shrink-0 font-mono text-[10px] uppercase",
                     r.daysUntil < 0 && "text-destructive",
-                    r.daysUntil >= 0 && r.daysUntil <= 14 && "text-warning",
-                    r.daysUntil > 14 && "text-muted-foreground",
+                    r.daysUntil >= 0 && r.daysUntil <= 30 && "text-warning",
+                    r.daysUntil > 30 && "text-muted-foreground",
                   )}
                 >
                   {r.daysUntil < 0
@@ -539,8 +561,8 @@ export function HubDashboard({
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        )}
+      </section>
 
       <DashboardInsights alerts={smartAlerts} aiConfigured={aiConfigured} />
 

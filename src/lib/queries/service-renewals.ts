@@ -1,5 +1,5 @@
 import "server-only";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -15,12 +15,9 @@ export type UpcomingRenewal = {
   currency: string;
 };
 
-export async function listUpcomingRenewals(
-  withinDays = 45,
-): Promise<UpcomingRenewal[]> {
+/** Todos os acessos ativos com data de vencimento (sem limite de dias). */
+export async function listUpcomingRenewals(): Promise<UpcomingRenewal[]> {
   const supabase = await createSupabaseServerClient();
-  const today = new Date();
-  const until = format(addDays(today, withinDays), "yyyy-MM-dd");
 
   const { data, error } = await supabase
     .from("client_access")
@@ -29,9 +26,7 @@ export async function listUpcomingRenewals(
     )
     .eq("is_active", true)
     .not("next_due_date", "is", null)
-    .lte("next_due_date", until)
-    .order("next_due_date", { ascending: true })
-    .limit(20);
+    .order("next_due_date", { ascending: true });
 
   if (error) {
     console.error("[listUpcomingRenewals]", error);
@@ -60,7 +55,7 @@ export async function listUpcomingRenewals(
       clientId: client?.id ?? "",
       clientName: client?.name ?? "—",
       amount: row.amount != null ? Number(row.amount) : null,
-      currency: row.currency,
+      currency: row.currency ?? "BRL",
     };
   });
 }
