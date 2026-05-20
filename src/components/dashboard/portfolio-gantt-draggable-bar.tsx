@@ -16,7 +16,7 @@ export function PortfolioGanttDraggableBar({
   colorClass,
   style,
   totalDays,
-  onDragEnd,
+  onResizeEnd,
 }: {
   startDate: string;
   endDate: string;
@@ -28,69 +28,85 @@ export function PortfolioGanttDraggableBar({
   colorClass: string;
   style: { left: string; width: string };
   totalDays: number;
-  onDragEnd: (deltaDays: number, timelineWidth: number) => void;
+  onResizeEnd: (deltaDays: number, timelineWidth: number) => void;
 }) {
   const startLabel = format(parseISO(startDate), "dd MMM yyyy", { locale: ptBR });
   const endLabel = format(parseISO(endDate), "dd MMM yyyy", { locale: ptBR });
-  const trackRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [dragPx, setDragPx] = useState(0);
   const dragging = useRef(false);
   const startX = useRef(0);
 
+  const baseWidth = parseFloat(style.width);
+
   const finishDrag = useCallback(
     (clientX: number) => {
-      if (!dragging.current || !trackRef.current) return;
+      if (!dragging.current || !containerRef.current) return;
       dragging.current = false;
-      const width = trackRef.current.parentElement?.clientWidth ?? 0;
+      const timelineWidth =
+        containerRef.current.parentElement?.clientWidth ?? 0;
       const deltaPx = clientX - startX.current;
       setDragPx(0);
-      if (width > 0 && Math.abs(deltaPx) > 4) {
-        const deltaDays = Math.round((deltaPx / width) * totalDays);
-        if (deltaDays !== 0) onDragEnd(deltaDays, width);
+      if (timelineWidth > 0 && Math.abs(deltaPx) > 4) {
+        const deltaDays = Math.round((deltaPx / timelineWidth) * totalDays);
+        if (deltaDays !== 0) onResizeEnd(deltaDays, timelineWidth);
       }
     },
-    [onDragEnd, totalDays],
+    [onResizeEnd, totalDays],
   );
+
+  const timelineW = containerRef.current?.parentElement?.clientWidth ?? 1;
+  const displayWidth =
+    dragPx !== 0
+      ? `${Math.max(0.5, baseWidth + (dragPx / timelineW) * 100)}%`
+      : style.width;
 
   return (
     <div
-      ref={trackRef}
-      className="group/bar absolute top-1 bottom-1 z-[1] touch-none"
-      style={{
-        ...style,
-        transform: dragPx ? `translateX(${dragPx}px)` : undefined,
-      }}
-      onPointerDown={(e) => {
-        if (e.button !== 0) return;
-        dragging.current = true;
-        startX.current = e.clientX;
-        setDragPx(0);
-        (e.target as HTMLElement).setPointerCapture(e.pointerId);
-      }}
-      onPointerMove={(e) => {
-        if (!dragging.current) return;
-        setDragPx(e.clientX - startX.current);
-      }}
-      onPointerUp={(e) => {
-        finishDrag(e.clientX);
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-      }}
-      onPointerCancel={(e) => {
-        dragging.current = false;
-        setDragPx(0);
-        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-      }}
+      ref={containerRef}
+      className="group/bar absolute top-1 bottom-1 z-[1]"
+      style={{ left: style.left, width: displayWidth }}
     >
       <div
         className={cn(
-          "h-full w-full cursor-grab rounded-md transition-shadow active:cursor-grabbing",
+          "pointer-events-none absolute inset-y-0 left-0 right-2.5 rounded-md transition-shadow",
           isOverdue ? "bg-destructive" : colorClass,
           isDueThisWeek &&
             !isOverdue &&
             "ring-2 ring-warning/70 ring-offset-1 ring-offset-transparent",
           dragPx !== 0 && "opacity-80 shadow-lg ring-2 ring-brand-orange/50",
         )}
-        aria-label={`${startLabel} até ${endLabel}. Arraste para mover.`}
+        aria-hidden
+      />
+      <div
+        className={cn(
+          "absolute top-0 right-0 bottom-0 z-[2] w-2.5 cursor-ew-resize rounded-r-md touch-none",
+          "bg-white/25 hover:bg-white/40 active:bg-brand-orange/60",
+          dragPx !== 0 && "bg-brand-orange/70",
+        )}
+        title="Arraste para ajustar o prazo final"
+        aria-label={`Ajustar término: ${endLabel}`}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          if (e.button !== 0) return;
+          dragging.current = true;
+          startX.current = e.clientX;
+          setDragPx(0);
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!dragging.current) return;
+          setDragPx(e.clientX - startX.current);
+        }}
+        onPointerUp={(e) => {
+          finishDrag(e.clientX);
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
+        onPointerCancel={(e) => {
+          dragging.current = false;
+          setDragPx(0);
+          e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
       />
       <div
         role="tooltip"
@@ -116,7 +132,7 @@ export function PortfolioGanttDraggableBar({
           </p>
         )}
         <p className="mt-1.5 font-mono text-[9px] uppercase tracking-wider text-brand-orange">
-          Arraste para mover prazos
+          Borda direita · ajustar prazo
         </p>
       </div>
     </div>

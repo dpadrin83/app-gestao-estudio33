@@ -11,7 +11,7 @@ import {
   barPosition,
 } from "@/lib/gantt-utils";
 import type { PortfolioProjectRow } from "@/lib/queries/portfolio-gantt";
-import { shiftProjectSchedule } from "@/lib/actions/portfolio-schedule";
+import { resizeProjectScheduleEnd } from "@/lib/actions/portfolio-schedule";
 import { PortfolioGanttDraggableBar } from "@/components/dashboard/portfolio-gantt-draggable-bar";
 import {
   Dialog,
@@ -33,7 +33,7 @@ const BAR_COLORS = [
   "bg-gradient-to-r from-brand-magenta to-brand-orange",
 ];
 
-type PendingShift = {
+type PendingResize = {
   projectId: string;
   projectName: string;
   deltaDays: number;
@@ -59,11 +59,11 @@ export function PortfolioGanttBoard({
   projectsDueThisWeek: number;
 }) {
   const router = useRouter();
-  const [pending, setPending] = useState<PendingShift | null>(null);
+  const [pending, setPending] = useState<PendingResize | null>(null);
   const [isPending, startTransition] = useTransition();
   const rangeStart = parseISO(rangeStartIso);
 
-  const requestShift = useCallback(
+  const requestResize = useCallback(
     (row: PortfolioProjectRow, deltaDays: number) => {
       if (!row.hasSchedule || deltaDays === 0) return;
       setPending({
@@ -77,19 +77,19 @@ export function PortfolioGanttBoard({
     [],
   );
 
-  function confirmShift() {
+  function confirmResize() {
     if (!pending) return;
     startTransition(async () => {
-      const result = await shiftProjectSchedule(
+      const result = await resizeProjectScheduleEnd(
         pending.projectId,
         pending.deltaDays,
       );
       if (result.ok) {
-        const n = result.data?.shifted ?? 0;
+        const n = result.data?.updated ?? 0;
         const label =
           result.data?.kind === "project"
             ? "Prazo do projeto atualizado."
-            : `${n} atividade${n === 1 ? "" : "s"} deslocada${n === 1 ? "" : "s"}.`;
+            : `Prazo final ajustado em ${n} atividade${n === 1 ? "" : "s"}.`;
         toast.success(label);
         setPending(null);
         router.refresh();
@@ -238,8 +238,8 @@ export function PortfolioGanttBoard({
                           width: `${pos.width}%`,
                         }}
                         totalDays={totalDays}
-                        onDragEnd={(deltaDays) =>
-                          requestShift(row, deltaDays)
+                        onResizeEnd={(deltaDays) =>
+                          requestResize(row, deltaDays)
                         }
                       />
                     ) : (
@@ -295,7 +295,7 @@ export function PortfolioGanttBoard({
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Mover cronograma?</DialogTitle>
+            <DialogTitle>Ajustar prazo final?</DialogTitle>
             <DialogDescription className="space-y-2 pt-1">
               {pending && (
                 <>
@@ -303,7 +303,8 @@ export function PortfolioGanttBoard({
                     <strong className="text-foreground">
                       {pending.projectName}
                     </strong>
-                    {pending.deltaDays > 0 ? " adianta " : " atrasa "}
+                    {pending.deltaDays > 0 ? " estende " : " reduz "}
+                    o prazo em{" "}
                     <strong className="text-foreground">
                       {Math.abs(pending.deltaDays)} dia
                       {Math.abs(pending.deltaDays) === 1 ? "" : "s"}
@@ -318,8 +319,8 @@ export function PortfolioGanttBoard({
                   </span>
                   {pending.openActivitiesCount > 0 ? (
                     <span className="block text-xs">
-                      Todas as {pending.openActivitiesCount} atividades abertas
-                      serão deslocadas e o cronograma será recalculado.
+                      Atividades no prazo máximo do projeto terão o fim
+                      ajustado; o cronograma será recalculado.
                     </span>
                   ) : (
                     <span className="block text-xs">
@@ -342,7 +343,7 @@ export function PortfolioGanttBoard({
             <Button
               type="button"
               disabled={isPending || !pending}
-              onClick={confirmShift}
+              onClick={confirmResize}
             >
               {isPending ? "Aplicando…" : "Confirmar"}
             </Button>

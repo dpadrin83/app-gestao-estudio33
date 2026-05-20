@@ -8,6 +8,7 @@ import { formatCurrency, formatDuration, projectStatusLabels } from "@/lib/forma
 import { ProjectRowTimer } from "@/app/(app)/projects/project-row-timer";
 import { DashboardInsights } from "@/components/ai/dashboard-insights";
 import { DashboardPortfolioGantt } from "@/components/dashboard/dashboard-portfolio-gantt";
+import { PortfolioOverdueHeroAlert } from "@/components/dashboard/portfolio-overdue-hero-alert";
 import type {
   PortfolioGanttData,
   PortfolioGanttSort,
@@ -93,6 +94,10 @@ export function HubDashboard({
         </p>
       </header>
 
+      <PortfolioOverdueHeroAlert
+        projectsOverdue={portfolioGantt.projectsOverdue}
+      />
+
       {activeSession && (
         <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-success/40 bg-success/10 px-5 py-4">
           <div className="flex items-center gap-3">
@@ -121,6 +126,7 @@ export function HubDashboard({
         clients={portfolioGanttClients}
         selectedClientId={portfolioClientId}
         selectedSort={portfolioSort}
+        capacity={capacity}
       />
 
       {/* Aurora grid */}

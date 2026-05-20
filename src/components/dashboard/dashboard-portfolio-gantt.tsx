@@ -10,8 +10,13 @@ import { PortfolioGanttControls } from "@/components/dashboard/portfolio-gantt-c
 import { PortfolioGanttBoard } from "@/components/dashboard/portfolio-gantt-board";
 import { PortfolioGanttExport } from "@/components/dashboard/portfolio-gantt-export";
 import { schedulePath } from "@/lib/app-paths";
+import {
+  buildPortfolioCapacityInsight,
+  type PortfolioCapacityInsight,
+} from "@/lib/portfolio-capacity-insight";
 import { cn } from "@/lib/utils";
 import { CalendarRange } from "lucide-react";
+import type { HubDashboardData } from "@/lib/queries/dashboard-hub";
 
 const EXPORT_ROOT_ID = "portfolio-gantt-export";
 
@@ -20,12 +25,15 @@ export function DashboardPortfolioGantt({
   clients,
   selectedClientId,
   selectedSort,
+  capacity,
 }: {
   data: PortfolioGanttData;
   clients: { id: string; name: string }[];
   selectedClientId?: string;
   selectedSort: PortfolioGanttSort;
+  capacity: HubDashboardData["capacity"];
 }) {
+  const capacityInsight = buildPortfolioCapacityInsight(capacity, data);
   const { rangeStart, totalDays } = ganttRange(data.bars);
   const rangeEnd = new Date(
     rangeStart.getTime() + (totalDays - 1) * 86_400_000,
@@ -67,6 +75,10 @@ export function DashboardPortfolioGantt({
         selectedClientId={selectedClientId}
         selectedSort={selectedSort}
       />
+
+      {capacityInsight && (
+        <PortfolioCapacityBanner insight={capacityInsight} />
+      )}
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryKpi
@@ -146,6 +158,39 @@ function todayLinePercent(rangeStart: Date, totalDays: number): number | null {
     (differenceInCalendarDays(today, rangeStart) / totalDays) * 100;
   if (left < 0 || left > 100) return null;
   return left;
+}
+
+function PortfolioCapacityBanner({
+  insight,
+}: {
+  insight: PortfolioCapacityInsight;
+}) {
+  return (
+    <div
+      className={cn(
+        "mb-4 rounded-xl border px-4 py-3",
+        insight.tone === "critical" &&
+          "border-destructive/40 bg-destructive/8",
+        insight.tone === "warning" &&
+          "border-warning/40 bg-warning/8",
+        insight.tone === "ok" && "border-border bg-card/40",
+      )}
+    >
+      <p
+        className={cn(
+          "font-mono text-[10px] uppercase tracking-wider",
+          insight.tone === "critical" && "text-destructive",
+          insight.tone === "warning" && "text-warning",
+          insight.tone === "ok" && "text-muted-foreground",
+        )}
+      >
+        {insight.title}
+      </p>
+      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+        {insight.detail}
+      </p>
+    </div>
+  );
 }
 
 function SummaryKpi({

@@ -68,7 +68,7 @@ export function PortfolioGanttExport({ targetId }: { targetId: string }) {
       </Button>
       <span className="hidden items-center gap-1 self-center font-mono text-[9px] uppercase tracking-wider text-muted-foreground sm:inline-flex">
         <Download className="size-3" />
-        arraste barras para mover prazos
+        borda direita da barra · ajustar prazo
       </span>
     </div>
   );
