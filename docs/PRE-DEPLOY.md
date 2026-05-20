@@ -134,6 +134,7 @@ Sem Resend: app funciona, mas **sem** convite portal, reset de senha por e-mail 
 | 24 | `20260521190000_seed_branding_strategy_catalog_steps.sql` (Branding e Estratégia de Marca, 18 etapas) |
 | 25 | `20260521200000_rename_branding_area.sql` (só se já rodou o nome antigo da área) |
 | 26 | `20260521210000_seed_visual_identity_catalog_steps.sql` (Identidade Visual, 11 etapas) |
-| 27 | `20260521220000_seed_web_design_catalog_steps.sql` (Web Design, 15 etapas) |
+| 27 | `20260521220000_seed_web_design_catalog_steps.sql` (Soluções Digitais, 15 etapas) |
+| 28 | `20260521230000_fix_digital_solutions_area.sql` (rename/correção se já rodou Web Design) |
 
 Detalhes: [deploy.md](./deploy.md)

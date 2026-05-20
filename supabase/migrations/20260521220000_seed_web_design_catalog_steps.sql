@@ -1,4 +1,5 @@
--- Área: Web Design — domínio, hospedagem, UI/UX, desenvolvimento e entrega do site
+-- Área: Soluções Digitais (sites, apps, sistemas)
+-- UX/UI e gestão no início; DEV só após handoff do design.
 
 do $$
 declare
@@ -16,42 +17,56 @@ begin
 
   insert into public.deliverable_catalog_groups (name, description, sort_order)
   select
-    'Web Design',
-    'Domínio, hospedagem, UX/UI, implementação, testes e entrega do site.',
+    'Soluções Digitais',
+    'Sites, apps e sistemas: domínio e UX/UI primeiro; desenvolvimento após aprovação do design.',
     20
   where not exists (
     select 1 from public.deliverable_catalog_groups g
-    where lower(trim(g.name)) = lower(trim('Web Design'))
+    where lower(trim(g.name)) in (
+      lower(trim('Soluções Digitais')),
+      lower(trim('Web Design'))
+    )
   );
 
   select id into gid
   from public.deliverable_catalog_groups
-  where lower(trim(name)) = lower(trim('Web Design'))
+  where lower(trim(name)) in (
+    lower(trim('Soluções Digitais')),
+    lower(trim('Web Design'))
+  )
+  order by case when lower(trim(name)) = lower(trim('Soluções Digitais')) then 0 else 1 end
   limit 1;
 
   if gid is null then
-    raise exception 'Web Design: área não encontrada após insert.';
+    raise exception 'Soluções Digitais: área não encontrada após insert.';
   end if;
+
+  update public.deliverable_catalog_groups
+  set
+    name = 'Soluções Digitais',
+    description = 'Sites, apps e sistemas: domínio e UX/UI primeiro; desenvolvimento após aprovação do design.',
+    updated_at = now()
+  where id = gid and lower(trim(name)) <> lower(trim('Soluções Digitais'));
 
   for r in
     select *
     from (values
-      (0,  'Registro de domínio e DNS',           1, 'arquiteto-dev',  'link', 'Gestor: Registro.br ou registrador. Prompt: Checklist domínio e DNS.'),
-      (1,  'Hospedagem e ambientes',            2, 'arquiteto-dev',  'code', 'Staging + produção (Vercel/host). Depende de DNS propagado.'),
-      (2,  'Briefing digital e requisitos',     1, 'ui-ux-digital',  'doc',  'Escopo de páginas, integrações e conteúdo.'),
-      (3,  'Sitemap e arquitetura de informação', 2, 'ui-ux-digital',  'doc',  'Prompt: Sitemap + IA.'),
-      (4,  'Wireframes (páginas-chave)',        3, 'ui-ux-digital',  'design', 'Prompt: Wireframe landing/institucional.'),
-      (5,  'UI e protótipo Figma',              5, 'ui-ux-digital',  'design', 'Prompt: UI kit / protótipo responsivo.'),
-      (6,  'Aprovação do design (cliente)',     1, 'pm-orquestrador', 'doc',  'Gestor: enviar no portal e registrar OK.'),
-      (7,  'Handoff design → desenvolvimento',  1, 'ui-ux-digital',  'doc',  'Specs, tokens, assets exportados.'),
-      (8,  'Setup do projeto (repo e stack)',   1, 'arquiteto-dev',  'code', 'Prompt: PRD técnico / stack.'),
-      (9,  'Implementação do site',             8, 'arquiteto-dev',  'code', 'Front-end + integrações acordadas.'),
-      (10, 'CMS, conteúdo e formulários',      3, 'arquiteto-dev',  'code', 'População inicial e testes de envio.'),
-      (11, 'SSL, performance e SEO técnico',   2, 'arquiteto-dev',  'code', 'Prompt: SEO técnico + performance.'),
-      (12, 'Testes e homologação',              2, 'arquiteto-dev',  'doc',  'Checklist cross-browser e mobile.'),
-      (13, 'Deploy e go-live',                  1, 'arquiteto-dev',  'link', 'Produção publicada + monitoração básica.'),
-      (14, 'Entrega e treinamento ao cliente',  1, 'pm-orquestrador', 'doc', 'Acesso admin, manual rápido, encerramento.')
-    ) as v(sort_order, name, days, prof_slug, dtype, notes)
+      (0,  'Registro de domínio e DNS',              1, 'pm-orquestrador', 'web_design', 'link', 'Gestor: Registro.br/DNS. DEV entra só após handoff.'),
+      (1,  'Hospedagem e contas (contratação)',      1, 'pm-orquestrador', 'web_design', 'doc',  'Gestor: Vercel/host, e-mails de acesso. Config técnica na etapa DEV.'),
+      (2,  'Briefing digital e requisitos',          1, 'ui-ux-digital',   'web_design', 'doc',  'Site, app ou sistema — escopo e integrações.'),
+      (3,  'Sitemap e arquitetura de informação',    2, 'ui-ux-digital',   'web_design', 'doc',  'Prompt: Sitemap + IA.'),
+      (4,  'Wireframes (fluxos e páginas-chave)',     3, 'ui-ux-digital',   'web_design', 'design', 'Prompt: Wireframes.'),
+      (5,  'UI e protótipo Figma',                   5, 'ui-ux-digital',   'web_design', 'design', 'Prompt: UI kit / protótipo.'),
+      (6,  'Aprovação do design (cliente)',          1, 'pm-orquestrador', 'web_design', 'doc',  'Gestor: portal + OK registrado.'),
+      (7,  'Handoff design → desenvolvimento',       1, 'ui-ux-digital',   'web_design', 'doc',  'Specs, tokens e assets — libera fase DEV.'),
+      (8,  'Ambiente, repositório e stack',          2, 'arquiteto-dev',   'web_dev',    'code', '1ª etapa DEV: hospedagem técnica, repo, CI.'),
+      (9,  'Implementação (site, app ou sistema)',   8, 'arquiteto-dev',   'web_dev',    'code', 'Código conforme escopo aprovado.'),
+      (10, 'CMS, APIs e integrações',                3, 'arquiteto-dev',   'web_dev',    'code', 'Conteúdo, formulários e integrações.'),
+      (11, 'SSL, performance e SEO técnico',         2, 'arquiteto-dev',   'web_dev',    'code', 'Prompt: SEO técnico + performance.'),
+      (12, 'Testes e homologação',                   2, 'arquiteto-dev',   'web_dev',    'doc',  'Cross-browser, mobile e fluxos críticos.'),
+      (13, 'Deploy e go-live',                       1, 'arquiteto-dev',   'web_dev',    'link', 'Produção no ar.'),
+      (14, 'Entrega e treinamento ao cliente',       1, 'pm-orquestrador', 'web_dev',    'doc',  'Acessos, manual rápido, encerramento.')
+    ) as v(sort_order, name, days, prof_slug, svc_line, dtype, notes)
   loop
     insert into public.studio_deliverable_catalog (
       group_id, name, deliverable_type, estimated_days,
@@ -68,10 +83,7 @@ begin
         else dev_id
       end,
       prev_id,
-      case
-        when r.prof_slug = 'ui-ux-digital' then 'web_design'
-        else 'web_dev'
-      end,
+      r.svc_line,
       r.notes,
       r.sort_order
     where not exists (
@@ -87,13 +99,73 @@ begin
       from public.studio_deliverable_catalog c
       where c.group_id = gid and lower(trim(c.name)) = lower(trim(r.name));
 
-      if new_id is not null and prev_id is not null then
+      if new_id is not null then
         update public.studio_deliverable_catalog
-        set predecessor_id = prev_id, updated_at = now()
-        where id = new_id and predecessor_id is distinct from prev_id;
+        set
+          professional_id = case r.prof_slug
+            when 'ui-ux-digital' then ui_id
+            when 'pm-orquestrador' then pm_id
+            else dev_id
+          end,
+          service_line = r.svc_line,
+          estimated_days = r.days,
+          notes = r.notes,
+          deliverable_type = r.dtype,
+          predecessor_id = coalesce(
+            case when prev_id is not null then prev_id end,
+            predecessor_id
+          ),
+          updated_at = now()
+        where id = new_id;
       end if;
 
       prev_id := new_id;
     end if;
   end loop;
+
+  -- Migrar nomes antigos da área Web Design
+  update public.studio_deliverable_catalog c
+  set
+    name = 'Hospedagem e contas (contratação)',
+    professional_id = pm_id,
+    service_line = 'web_design',
+    deliverable_type = 'doc',
+    estimated_days = 1,
+    notes = 'Gestor: Vercel/host, e-mails de acesso. Config técnica na etapa DEV.',
+    updated_at = now()
+  from public.deliverable_catalog_groups g
+  where c.group_id = g.id
+    and lower(trim(g.name)) in (lower(trim('Soluções Digitais')), lower(trim('Web Design')))
+    and lower(trim(c.name)) = lower(trim('Hospedagem e ambientes'));
+
+  update public.studio_deliverable_catalog c
+  set
+    name = 'Ambiente, repositório e stack',
+    professional_id = dev_id,
+    service_line = 'web_dev',
+    estimated_days = 2,
+    notes = '1ª etapa DEV: hospedagem técnica, repo, CI.',
+    updated_at = now()
+  from public.deliverable_catalog_groups g
+  where c.group_id = g.id
+    and lower(trim(g.name)) in (lower(trim('Soluções Digitais')), lower(trim('Web Design')))
+    and lower(trim(c.name)) = lower(trim('Setup do projeto (repo e stack)'));
+
+  update public.studio_deliverable_catalog c
+  set
+    name = 'Implementação (site, app ou sistema)',
+    notes = 'Código conforme escopo aprovado.',
+    updated_at = now()
+  from public.deliverable_catalog_groups g
+  where c.group_id = g.id
+    and lower(trim(g.name)) in (lower(trim('Soluções Digitais')), lower(trim('Web Design')))
+    and lower(trim(c.name)) = lower(trim('Implementação do site'));
+
+  update public.studio_deliverable_catalog c
+  set professional_id = pm_id, service_line = 'web_design', updated_at = now()
+  from public.deliverable_catalog_groups g
+  where c.group_id = g.id
+    and lower(trim(g.name)) in (lower(trim('Soluções Digitais')), lower(trim('Web Design')))
+    and lower(trim(c.name)) = lower(trim('Registro de domínio e DNS'))
+    and c.professional_id = dev_id;
 end $$;
