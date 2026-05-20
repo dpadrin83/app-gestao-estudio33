@@ -7,6 +7,8 @@ import { initials } from "@/lib/queries/dashboard-hub";
 import { formatCurrency, formatDuration, projectStatusLabels } from "@/lib/format";
 import { ProjectRowTimer } from "@/app/(app)/projects/project-row-timer";
 import { DashboardInsights } from "@/components/ai/dashboard-insights";
+import { DashboardPortfolioGantt } from "@/components/dashboard/dashboard-portfolio-gantt";
+import type { PortfolioGanttData } from "@/lib/queries/portfolio-gantt";
 import { cn } from "@/lib/utils";
 import type { ProjectListItem } from "@/lib/queries/projects-list";
 import type { SmartAlert } from "@/lib/alerts/smart-alerts";
@@ -40,6 +42,7 @@ const PROJECT_ACCENTS = [
 ] as const;
 
 type HubDashboardProps = HubDashboardData & {
+  portfolioGantt: PortfolioGanttData;
   aiConfigured: boolean;
   smartAlerts: SmartAlert[];
 };
@@ -61,6 +64,7 @@ export function HubDashboard({
   projects,
   activeSession,
   renewals,
+  portfolioGantt,
   aiConfigured,
   smartAlerts,
 }: HubDashboardProps) {
@@ -102,6 +106,8 @@ export function HubDashboard({
           />
         </div>
       )}
+
+      <DashboardPortfolioGantt data={portfolioGantt} />
 
       {/* Aurora grid */}
       <div className="mb-9 grid grid-cols-1 gap-3.5 lg:grid-cols-12">
