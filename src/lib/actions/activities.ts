@@ -46,13 +46,31 @@ function syncStatusFromForm(
   return status;
 }
 
-/** Recálculo forward só quando datas/duração/dependências mudam — não em status/portal. */
+/** Recálculo forward: datas/duração ou conclusão (puxa dependentes). */
 function shouldRecalculateSchedule(patch: ActivityPatch): boolean {
   return (
     patch.planned_start_date !== undefined ||
     patch.planned_end_date !== undefined ||
-    patch.estimated_duration_days !== undefined
+    patch.estimated_duration_days !== undefined ||
+    patch.status === "completed"
   );
+}
+
+/** Garante actual_start <= actual_end (constraint do banco). */
+function completionActualDates(
+  current: {
+    planned_start_date: string;
+    actual_start_date: string | null;
+  },
+  today: string,
+): { actual_start_date: string; actual_end_date: string } {
+  let start =
+    current.actual_start_date ??
+    (current.planned_start_date <= today
+      ? current.planned_start_date
+      : today);
+  if (start > today) start = today;
+  return { actual_start_date: start, actual_end_date: today };
 }
 
 function derivePlannedEnd(
@@ -357,6 +375,9 @@ export async function patchActivity(
   if (!current) {
     return { ok: false, error: "Atividade não encontrada." };
   }
+  if (current.project_id !== projectId) {
+    return { ok: false, error: "Atividade não pertence a este projeto." };
+  }
 
   const today = format(new Date(), "yyyy-MM-dd");
   const next: Record<string, unknown> = { ...patch };
@@ -364,12 +385,21 @@ export async function patchActivity(
 
   if (patch.status === "completed") {
     next.status = "completed";
-    next.actual_end_date = today;
-    if (!current.actual_start_date) {
-      next.actual_start_date = current.planned_start_date ?? today;
-    }
+    Object.assign(
+      next,
+      completionActualDates(
+        {
+          planned_start_date: current.planned_start_date as string,
+          actual_start_date: current.actual_start_date as string | null,
+        },
+        today,
+      ),
+    );
   } else if (patch.status !== undefined) {
     next.actual_end_date = null;
+    if (patch.status === "not_started") {
+      next.actual_start_date = null;
+    }
   }
 
   const start =
@@ -454,12 +484,18 @@ export async function completePhaseActivities(
   }
 
   for (const row of rows) {
+    const dates = completionActualDates(
+      {
+        planned_start_date: row.planned_start_date as string,
+        actual_start_date: row.actual_start_date as string | null,
+      },
+      today,
+    );
     const { error } = await supabase
       .from("activities")
       .update({
         status: "completed",
-        actual_end_date: today,
-        actual_start_date: row.actual_start_date ?? row.planned_start_date ?? today,
+        ...dates,
       })
       .eq("id", row.id);
     if (error) {
@@ -486,11 +522,31 @@ export async function updateActivity(
   const supabase = await createSupabaseServerClient();
   const { data: current } = await supabase
     .from("activities")
-    .select("planned_start_date, planned_end_date, estimated_duration_days")
+    .select(
+      "planned_start_date, planned_end_date, estimated_duration_days, actual_start_date",
+    )
     .eq("id", id)
     .single();
 
   const payload = normalizeActivity(parsed.data, projectId);
+  const today = format(new Date(), "yyyy-MM-dd");
+
+  if (parsed.data.status === "completed") {
+    Object.assign(
+      payload,
+      completionActualDates(
+        {
+          planned_start_date: parsed.data.planned_start_date,
+          actual_start_date: (current?.actual_start_date as string | null) ?? null,
+        },
+        today,
+      ),
+    );
+  } else if (parsed.data.status === "not_started") {
+    Object.assign(payload, { actual_start_date: null, actual_end_date: null });
+  } else {
+    Object.assign(payload, { actual_end_date: null });
+  }
 
   const { error } = await supabase.from("activities").update(payload).eq("id", id);
   if (error) {
@@ -504,7 +560,7 @@ export async function updateActivity(
     payload.planned_end_date !== current.planned_end_date ||
     payload.estimated_duration_days !== current.estimated_duration_days;
 
-  if (dateChanged) {
+  if (dateChanged || parsed.data.status === "completed") {
     await recalculateSchedule(projectId);
   }
   revalidateSchedulePaths(projectId);

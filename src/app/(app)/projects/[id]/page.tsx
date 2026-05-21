@@ -203,6 +203,7 @@ export default async function ProjectDetailPage({
           professionals={studioProfessionals}
           catalogGroups={catalogStructure.groups}
           hasScheduleActivities={activities.length > 0}
+          projectLinks={projectLinks}
         />
       </div>
 
@@ -248,7 +249,7 @@ export default async function ProjectDetailPage({
         id="links"
         className="mb-3 text-xl font-semibold tracking-tight scroll-mt-24"
       >
-        Links e arquivos
+        Acessos e credenciais
       </h2>
       <div className="mb-10">
         <ProjectLinks projectId={project.id} links={projectLinks} />

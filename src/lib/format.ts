@@ -138,6 +138,11 @@ export const projectLinkKindLabels = {
   doc: "Documento",
   link: "Link",
   other: "Outro",
+  supabase: "Supabase",
+  vercel: "Vercel",
+  cursor: "Cursor / IDE",
+  hosting: "Hospedagem",
+  credential: "Credencial / senha",
 } as const;
 
 export const clientAccessBillingCycleLabels = {

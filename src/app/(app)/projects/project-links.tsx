@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Eye, EyeOff, Copy, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { projectLinkKindLabels } from "@/lib/format";
 import type { ProjectLink } from "@/types/database";
@@ -33,6 +33,115 @@ const kinds = Object.entries(projectLinkKindLabels) as [
   ProjectLinkFormValues["kind"],
   string,
 ][];
+
+const emptyForm: ProjectLinkFormValues = {
+  name: "",
+  url: "",
+  username: "",
+  secret_note: "",
+  kind: "link",
+};
+
+function AccessRow({
+  link,
+  pending,
+  onDelete,
+}: {
+  link: ProjectLink;
+  pending: boolean;
+  onDelete: (id: string) => void;
+}) {
+  const [showSecret, setShowSecret] = useState(false);
+
+  async function copySecret() {
+    if (!link.secret_note) return;
+    try {
+      await navigator.clipboard.writeText(link.secret_note);
+      toast.success("Copiado.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  }
+
+  return (
+    <li className="rounded-lg border border-border bg-card/60 px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">{link.name}</p>
+          <p className="font-mono text-[10px] uppercase text-muted-foreground">
+            {projectLinkKindLabels[link.kind]}
+          </p>
+          {link.username && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Usuário: <span className="font-mono text-foreground">{link.username}</span>
+            </p>
+          )}
+          {link.secret_note && (
+            <p className="mt-1 break-all font-mono text-xs">
+              {showSecret ? link.secret_note : "••••••••••••"}
+            </p>
+          )}
+          {link.url && (
+            <p className="mt-1 truncate font-mono text-[10px] text-muted-foreground">
+              {link.url}
+            </p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-0.5">
+          {link.secret_note && (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                onClick={() => setShowSecret((s) => !s)}
+                title={showSecret ? "Ocultar" : "Mostrar senha"}
+              >
+                {showSecret ? (
+                  <EyeOff className="size-3.5" />
+                ) : (
+                  <Eye className="size-3.5" />
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                disabled={pending}
+                onClick={copySecret}
+                title="Copiar"
+              >
+                <Copy className="size-3.5" />
+              </Button>
+            </>
+          )}
+          {link.url && (
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "size-8")}
+            >
+              <ExternalLink className="size-3.5" />
+            </a>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-8"
+            disabled={pending}
+            onClick={() => onDelete(link.id)}
+          >
+            <Trash2 className="size-3.5 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </li>
+  );
+}
 
 export function ProjectLinks({
   projectId,
@@ -53,15 +162,15 @@ export function ProjectLinks({
     formState: { errors },
   } = useForm<ProjectLinkFormValues>({
     resolver: zodResolver(ProjectLinkSchema),
-    defaultValues: { name: "", url: "", kind: "link" },
+    defaultValues: emptyForm,
   });
 
   function onSubmit(values: ProjectLinkFormValues) {
     startTransition(async () => {
       const result = await createProjectLink(projectId, values);
       if (result.ok) {
-        toast.success("Link adicionado.");
-        reset();
+        toast.success("Acesso salvo.");
+        reset(emptyForm);
         setOpen(false);
         router.refresh();
       } else {
@@ -71,11 +180,11 @@ export function ProjectLinks({
   }
 
   function handleDelete(id: string) {
-    if (!confirm("Excluir este link?")) return;
+    if (!confirm("Excluir este acesso?")) return;
     startTransition(async () => {
       const result = await deleteProjectLink(id, projectId);
       if (result.ok) {
-        toast.success("Link excluído.");
+        toast.success("Acesso excluído.");
         router.refresh();
       } else {
         toast.error(result.error);
@@ -85,13 +194,27 @@ export function ProjectLinks({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
+        <Shield className="mt-0.5 size-3.5 shrink-0 text-brand-orange" />
+        <p>
+          Credenciais e links deste projeto ficam só no Hub (admin). Não aparecem
+          na ficha do cliente nem no portal — apenas entregáveis marcados para o
+          cliente vão para lá.
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Drive, Figma, GitHub, pastas compartilhadas — tudo em um lugar.
+          GitHub, Supabase, Vercel, Figma, pasta local, senhas e API keys.
         </p>
-        <Button type="button" size="sm" variant="outline" onClick={() => setOpen((o) => !o)}>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setOpen((o) => !o)}
+        >
           <Plus className="size-4" />
-          Adicionar link
+          Adicionar acesso
         </Button>
       </div>
 
@@ -101,7 +224,10 @@ export function ProjectLinks({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Nome *</Label>
-                <Input placeholder="Ex.: Pasta do projeto" {...register("name")} />
+                <Input
+                  placeholder="Ex.: Supabase produção"
+                  {...register("name")}
+                />
                 {errors.name && (
                   <p className="text-xs text-destructive">{errors.name.message}</p>
                 )}
@@ -129,17 +255,37 @@ export function ProjectLinks({
               </div>
             </div>
             <div className="space-y-2">
-              <Label>URL *</Label>
-              <Input placeholder="https://..." {...register("url")} />
+              <Label>URL (opcional se tiver senha)</Label>
+              <Input placeholder="https://supabase.com/dashboard/..." {...register("url")} />
               {errors.url && (
                 <p className="text-xs text-destructive">{errors.url.message}</p>
               )}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Usuário / e-mail</Label>
+                <Input placeholder="opcional" {...register("username")} />
+              </div>
+              <div className="space-y-2">
+                <Label>Senha / API key / nota</Label>
+                <Input
+                  type="password"
+                  autoComplete="off"
+                  placeholder="anon key, service role, senha DB…"
+                  {...register("secret_note")}
+                />
+              </div>
             </div>
             <div className="flex gap-2">
               <Button type="submit" size="sm" disabled={pending}>
                 Salvar
               </Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
                 Cancelar
               </Button>
             </div>
@@ -149,41 +295,18 @@ export function ProjectLinks({
 
       {initial.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">
-          Nenhum link cadastrado ainda.
+          Nenhum acesso cadastrado. Comece pelo Supabase e GitHub ao criar o
+          projeto.
         </Card>
       ) : (
         <ul className="space-y-2">
           {initial.map((link) => (
-            <li
+            <AccessRow
               key={link.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card/60 px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium">{link.name}</p>
-                <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                  {projectLinkKindLabels[link.kind]}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-                >
-                  <ExternalLink className="size-3.5" />
-                </a>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={pending}
-                  onClick={() => handleDelete(link.id)}
-                >
-                  <Trash2 className="size-3.5 text-destructive" />
-                </Button>
-              </div>
-            </li>
+              link={link}
+              pending={pending}
+              onDelete={handleDelete}
+            />
           ))}
         </ul>
       )}

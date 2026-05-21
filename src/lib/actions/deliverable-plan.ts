@@ -7,8 +7,24 @@ import {
   DeliverablePlanItemSchema,
   type DeliverablePlanItemFormValues,
 } from "@/lib/schemas/deliverable-plan";
-import type { DeliverablePlanItem } from "@/types/database";
+import { ExecutionChecklistSchema } from "@/lib/schemas/execution-checklist";
+import {
+  buildDefaultChecklist,
+  parseExecutionChecklist,
+} from "@/lib/playbooks/execution-checklist";
+import type { DeliverablePlanItem, ExecutionChecklistItem } from "@/types/database";
 import type { ActionResult } from "@/lib/actions/deliverables";
+
+function mapPlanRow(
+  row: Omit<DeliverablePlanItem, "predecessor" | "execution_checklist"> & {
+    execution_checklist?: unknown;
+  },
+): Omit<DeliverablePlanItem, "predecessor"> {
+  return {
+    ...row,
+    execution_checklist: parseExecutionChecklist(row.execution_checklist),
+  };
+}
 
 function revalidateProject(projectId: string) {
   revalidatePath(`/projects/${projectId}`);
@@ -38,7 +54,11 @@ export async function getDeliverablePlan(
     return [];
   }
 
-  const rows = (data ?? []) as Omit<DeliverablePlanItem, "predecessor">[];
+  const rows = (data ?? []).map((r) =>
+    mapPlanRow(r as Omit<DeliverablePlanItem, "predecessor" | "execution_checklist"> & {
+      execution_checklist?: unknown;
+    }),
+  );
   const nameById = new Map(rows.map((r) => [r.id, r.name]));
 
   return rows.map((row) => ({
@@ -250,6 +270,61 @@ export async function deleteDeliverablePlanItem(
 
   revalidateProject(projectId);
   return { ok: true };
+}
+
+export async function updatePlanItemExecutionChecklist(
+  itemId: string,
+  projectId: string,
+  checklist: ExecutionChecklistItem[],
+): Promise<ActionResult> {
+  const parsed = ExecutionChecklistSchema.safeParse(checklist);
+  if (!parsed.success) {
+    return { ok: false, error: "Checklist inválida." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("project_deliverable_plan_items")
+    .update({
+      execution_checklist: parsed.data,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", itemId)
+    .eq("project_id", projectId);
+
+  if (error) {
+    console.error("[updatePlanItemExecutionChecklist]", error);
+    return { ok: false, error: "Não foi possível salvar o checklist." };
+  }
+
+  revalidateProject(projectId);
+  return { ok: true };
+}
+
+/** Preenche checklist sugerida só se a etapa ainda estiver vazia (não altera catálogo/Gantt). */
+export async function seedPlanItemExecutionChecklist(
+  itemId: string,
+  projectId: string,
+): Promise<ActionResult<{ checklist: ExecutionChecklistItem[] }>> {
+  const plan = await getDeliverablePlan(projectId);
+  const item = plan.find((i) => i.id === itemId);
+  if (!item) return { ok: false, error: "Etapa não encontrada." };
+  if (item.execution_checklist.length > 0) {
+    return { ok: true, data: { checklist: item.execution_checklist } };
+  }
+
+  const checklist = buildDefaultChecklist(item.name);
+  if (checklist.length === 0) {
+    return { ok: false, error: "Não há checklist sugerida para esta etapa." };
+  }
+
+  const result = await updatePlanItemExecutionChecklist(
+    itemId,
+    projectId,
+    checklist,
+  );
+  if (!result.ok) return result;
+  return { ok: true, data: { checklist } };
 }
 
 function topoSortPlan(items: DeliverablePlanItem[]): DeliverablePlanItem[] | null {

@@ -5,6 +5,12 @@
  *   supabase gen types typescript --project-id <id> > src/types/database.ts
  */
 
+export type ExecutionChecklistItem = {
+  id: string;
+  label: string;
+  done: boolean;
+};
+
 export type ClientStatus =
   | "prospect"
   | "active"
@@ -68,13 +74,20 @@ export type ProjectLinkKind =
   | "github"
   | "doc"
   | "link"
-  | "other";
+  | "other"
+  | "supabase"
+  | "vercel"
+  | "cursor"
+  | "hosting"
+  | "credential";
 
 export interface ProjectLink {
   id: string;
   project_id: string;
   name: string;
-  url: string;
+  url: string | null;
+  username: string | null;
+  secret_note: string | null;
   kind: ProjectLinkKind;
   created_at: string;
 }
@@ -366,6 +379,7 @@ export interface DeliverablePlanItem {
   deliverable_id: string | null;
   activity_id: string | null;
   notes: string | null;
+  execution_checklist: ExecutionChecklistItem[];
   sort_order: number;
   created_at: string;
   updated_at: string;

@@ -9,7 +9,7 @@ const TABS = [
   { id: "tarefas", label: "Tarefas" },
   { id: "entregaveis", label: "Entregáveis" },
   { id: "financeiro", label: "Financeiro" },
-  { id: "links", label: "Links" },
+  { id: "links", label: "Acessos" },
   { id: "atividade", label: "Atividade" },
 ] as const;
 

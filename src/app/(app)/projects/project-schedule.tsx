@@ -29,7 +29,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, LayoutTemplate } from "lucide-react";
+import Link from "next/link";
+import { Plus, LayoutTemplate, Info } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { ScheduleAiDialog } from "@/components/ai/schedule-ai-dialog";
 import { toast } from "sonner";
 import type {
@@ -101,6 +103,27 @@ export function ProjectSchedule({
 
   return (
     <div className="space-y-6">
+      <Card className="flex gap-3 border-brand-orange/25 bg-brand-orange/5 p-4">
+        <Info className="mt-0.5 size-4 shrink-0 text-brand-orange" />
+        <div className="text-sm text-muted-foreground">
+          <p>
+            Para <strong className="text-foreground">Soluções Digitais</strong> e
+            demais trilhas do catálogo, use{" "}
+            <Link
+              href="#plano-entregaveis"
+              className="font-medium text-brand-orange hover:underline"
+            >
+              Plano de entregáveis → Importar do catálogo
+            </Link>
+            , depois <strong className="text-foreground">Publicar no cronograma</strong>.
+          </p>
+          <p className="mt-1">
+            O botão <strong className="text-foreground">Aplicar template</strong> abaixo
+            são modelos antigos (5 opções), não substituem o catálogo.
+          </p>
+        </div>
+      </Card>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" size="sm" onClick={openCreate}>
@@ -168,8 +191,12 @@ export function ProjectSchedule({
             <DialogTitle>Aplicar template de cronograma</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Gera atividades encadeadas e plano de entregas. Só funciona em projetos
-            sem atividades.
+            Modelos legados (branding, landing, sistema web…). Para Soluções Digitais
+            com 20 etapas, use{" "}
+            <Link href="#plano-entregaveis" className="text-brand-orange hover:underline">
+              Plano de entregáveis → Importar do catálogo
+            </Link>
+            . Só funciona em projetos sem atividades.
           </p>
           <Select
             value={selectedTemplate}

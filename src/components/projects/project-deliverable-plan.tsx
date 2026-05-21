@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Plus, Pencil, Trash2, GitBranch, Calendar } from "lucide-react";
+import { Plus, Pencil, Trash2, GitBranch, Calendar, ListChecks } from "lucide-react";
 import { ImportCatalogDialog } from "@/components/projects/import-catalog-dialog";
+import { DeliverablePlanStepPanel } from "@/components/projects/deliverable-plan-step-panel";
+import { getSuggestedChecklistLabels } from "@/lib/playbooks/execution-checklist";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,7 @@ import { deliverableTypeLabels } from "@/lib/format";
 import type {
   DeliverableCatalogGroupWithItems,
   DeliverablePlanItem,
+  ProjectLink,
   StudioProfessional,
 } from "@/types/database";
 
@@ -76,18 +79,22 @@ export function ProjectDeliverablePlan({
   professionals,
   catalogGroups,
   hasScheduleActivities,
+  projectLinks,
 }: {
   projectId: string;
   items: DeliverablePlanItem[];
   professionals: StudioProfessional[];
   catalogGroups: DeliverableCatalogGroupWithItems[];
   hasScheduleActivities: boolean;
+  projectLinks: ProjectLink[];
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [replaceSchedule, setReplaceSchedule] = useState(false);
+  const [panelItem, setPanelItem] = useState<DeliverablePlanItem | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const {
     register,
@@ -177,7 +184,8 @@ export function ProjectDeliverablePlan({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">
-            Plano deste projeto. Etapas padrão ficam no{" "}
+            Clique em uma etapa para abrir o playbook (checklist e ordem no
+            Cursor). Etapas padrão ficam no{" "}
             <Link
               href="/catalog/deliverables"
               className="text-brand-orange hover:underline"
@@ -379,6 +387,7 @@ export function ProjectDeliverablePlan({
             <TableHeader>
               <TableRow>
                 <TableHead>Entregável</TableHead>
+                <TableHead className="w-10" />
                 <TableHead>Tipo</TableHead>
                 <TableHead>Dias</TableHead>
                 <TableHead>Depende de</TableHead>
@@ -388,9 +397,42 @@ export function ProjectDeliverablePlan({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {initial.map((item) => (
-                <TableRow key={item.id}>
+              {initial.map((item) => {
+                const hasPlaybook =
+                  item.execution_checklist.length > 0 ||
+                  getSuggestedChecklistLabels(item.name).length > 0 ||
+                  (item.notes?.trim().length ?? 0) > 0;
+                const doneMicro =
+                  item.execution_checklist.length > 0
+                    ? item.execution_checklist.filter((c) => c.done).length
+                    : 0;
+                const totalMicro = item.execution_checklist.length;
+
+                return (
+                <TableRow
+                  key={item.id}
+                  className="cursor-pointer hover:bg-muted/40"
+                  onClick={() => {
+                    setPanelItem(item);
+                    setPanelOpen(true);
+                  }}
+                >
                   <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>
+                    {hasPlaybook ? (
+                      <span
+                        className="inline-flex items-center gap-0.5 text-brand-orange"
+                        title="Playbook disponível"
+                      >
+                        <ListChecks className="size-3.5" />
+                        {totalMicro > 0 && (
+                          <span className="font-mono text-[9px]">
+                            {doneMicro}/{totalMicro}
+                          </span>
+                        )}
+                      </span>
+                    ) : null}
+                  </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {deliverableTypeLabels[item.deliverable_type]}
                   </TableCell>
@@ -425,7 +467,7 @@ export function ProjectDeliverablePlan({
                       </Link>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-end gap-0.5">
                       <Button
                         type="button"
@@ -450,11 +492,23 @@ export function ProjectDeliverablePlan({
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
             </TableBody>
           </Table>
         </Card>
       )}
+
+      <DeliverablePlanStepPanel
+        projectId={projectId}
+        item={panelItem}
+        projectLinks={projectLinks}
+        open={panelOpen}
+        onOpenChange={(o) => {
+          setPanelOpen(o);
+          if (!o) setPanelItem(null);
+        }}
+      />
 
       {initial.length > 0 && (
         <p className="text-xs text-muted-foreground">

@@ -9,8 +9,9 @@ import {
 import type { ProjectLink } from "@/types/database";
 import type { ActionResult } from "@/lib/actions/projects";
 
-function normalizeUrl(url: string) {
-  const t = url.trim();
+function normalizeUrl(url: string | undefined): string | null {
+  const t = url?.trim() ?? "";
+  if (!t) return null;
   return /^https?:\/\//i.test(t) ? t : `https://${t}`;
 }
 
@@ -48,6 +49,8 @@ export async function createProjectLink(
       project_id: projectId,
       name: parsed.data.name.trim(),
       url: normalizeUrl(parsed.data.url),
+      username: parsed.data.username?.trim() || null,
+      secret_note: parsed.data.secret_note?.trim() || null,
       kind: parsed.data.kind,
     })
     .select("id")
@@ -55,7 +58,7 @@ export async function createProjectLink(
 
   if (error) {
     console.error("[createProjectLink]", error);
-    return { ok: false, error: "Não foi possível adicionar o link." };
+    return { ok: false, error: "Não foi possível adicionar o acesso." };
   }
 
   revalidatePath(`/projects/${projectId}`);
@@ -70,7 +73,7 @@ export async function deleteProjectLink(
   const { error } = await supabase.from("project_links").delete().eq("id", id);
   if (error) {
     console.error("[deleteProjectLink]", error);
-    return { ok: false, error: "Não foi possível excluir o link." };
+    return { ok: false, error: "Não foi possível excluir." };
   }
   revalidatePath(`/projects/${projectId}`);
   return { ok: true };

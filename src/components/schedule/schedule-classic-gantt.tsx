@@ -102,7 +102,7 @@ export function ScheduleClassicGantt({
     startTransition(async () => {
       const result = await completeActivity(activity.id, projectId);
       if (result.ok) {
-        toast.success("Atividade concluída.");
+        toast.success("Concluída. Próximas etapas recalculadas no cronograma.");
         router.refresh();
       } else {
         toast.error(result.error);

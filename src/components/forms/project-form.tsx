@@ -74,13 +74,22 @@ export function ProjectForm({
 
   function onSubmit(values: ProjectFormValues) {
     startTransition(async () => {
-      const result = initial
-        ? await updateProject(initial.id, values)
-        : await createProject(values);
+      if (initial) {
+        const result = await updateProject(initial.id, values);
+        if (result.ok) {
+          toast.success("Projeto atualizado.");
+          router.push("/projects");
+          router.refresh();
+        } else {
+          toast.error(result.error);
+        }
+        return;
+      }
 
+      const result = await createProject(values);
       if (result.ok) {
-        toast.success(initial ? "Projeto atualizado." : "Projeto criado.");
-        router.push("/projects");
+        toast.success("Projeto criado.");
+        router.push(`/projects/${result.data!.id}#plano-entregaveis`);
         router.refresh();
       } else {
         toast.error(result.error);
