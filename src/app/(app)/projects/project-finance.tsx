@@ -10,8 +10,7 @@ import {
 } from "@/lib/schemas/project-cost";
 import { createProjectCost, deleteProjectCost } from "@/lib/actions/finance";
 import { ProjectFinanceDocuments } from "@/components/projects/project-finance-documents";
-import { PaymentStatusBadge } from "@/components/finance/payment-status-badge";
-import { MarginBadge } from "@/components/finance/margin-badge";
+import { ProjectFinancePayment } from "@/components/projects/project-finance-payment";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +28,6 @@ import { toast } from "sonner";
 import {
   formatCurrency,
   formatDate,
-  formatDateShort,
   formatDuration,
 } from "@/lib/format";
 import type {
@@ -43,6 +41,7 @@ export function ProjectFinance({
   projectId,
   costs,
   summary,
+  contractValue,
   paymentStatus,
   invoicedAt,
   receivedAt,
@@ -52,6 +51,7 @@ export function ProjectFinance({
   projectId: string;
   costs: ProjectCost[];
   summary: ProjectFinanceSummary;
+  contractValue: number | null;
   paymentStatus: PaymentStatus;
   invoicedAt: string | null;
   receivedAt: string | null;
@@ -105,43 +105,16 @@ export function ProjectFinance({
 
   return (
     <div className="space-y-6">
-      <Card className="flex flex-wrap items-center gap-4 p-4">
-        <div>
-          <p className="font-mono text-[10px] uppercase text-muted-foreground">
-            Pagamento
-          </p>
-          <div className="mt-1">
-            <PaymentStatusBadge status={paymentStatus} />
-          </div>
-        </div>
-        <div>
-          <p className="font-mono text-[10px] uppercase text-muted-foreground">
-            Faturado
-          </p>
-          <p className="mt-1 text-sm">
-            {invoicedAt ? formatDateShort(invoicedAt) : "—"}
-          </p>
-        </div>
-        <div>
-          <p className="font-mono text-[10px] uppercase text-muted-foreground">
-            Recebido
-          </p>
-          <p className="mt-1 text-sm">
-            {receivedAt ? formatDateShort(receivedAt) : "—"}
-          </p>
-        </div>
-        <div>
-          <p className="font-mono text-[10px] uppercase text-muted-foreground">
-            Margem %
-          </p>
-          <div className="mt-1">
-            <MarginBadge percent={marginPercent} atRisk={marginAtRisk} />
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Edite status e datas em Dados do projeto.
-        </p>
-      </Card>
+      <ProjectFinancePayment
+        projectId={projectId}
+        contractValue={contractValue}
+        paymentStatus={paymentStatus}
+        invoicedAt={invoicedAt}
+        receivedAt={receivedAt}
+        marginPercent={marginPercent}
+        marginAtRisk={marginAtRisk}
+        marginAlertPercent={marginAlertPercent}
+      />
 
       <div className="grid gap-3 sm:grid-cols-4">
         <Card className="p-4">

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { FinanceFilters } from "@/components/finance/finance-filters";
 import { FinanceExportButton } from "@/components/finance/finance-export-button";
-import { PaymentStatusBadge } from "@/components/finance/payment-status-badge";
+import { FinanceRowPayment } from "@/components/finance/finance-row-payment";
 import { MarginBadge } from "@/components/finance/margin-badge";
 import { getFinancePageData } from "@/lib/queries/finance-overview";
 import { formatCurrency, formatDateShort } from "@/lib/format";
@@ -61,8 +61,26 @@ export default async function FinancePage({
       <PageHeader
         eyebrow="Financeiro"
         title="Visão por projeto"
-        description={`Orçamento, recebíveis, custos, margem e arquivos. Alerta de margem abaixo de ${data.marginAlertPercent}%.`}
+        description={`Recebíveis, custos e margem. Altere o status de pagamento na tabela ou abra o projeto → Financeiro. Alerta de margem < ${data.marginAlertPercent}%.`}
       />
+
+      <Card className="mb-6 border-brand-yellow/25 bg-brand-yellow/5 p-4">
+        <p className="text-sm font-medium">Rotina financeira</p>
+        <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-muted-foreground">
+          <li>
+            <strong className="text-foreground">Fechou contrato</strong> — projeto →
+            Financeiro: valor + «a faturar»
+          </li>
+          <li>
+            <strong className="text-foreground">Emitiu NF</strong> — botão «faturado» ou
+            select na tabela abaixo
+          </li>
+          <li>
+            <strong className="text-foreground">Recebeu</strong> — «recebido» + data (entra
+            no mês) · lance custos e anexe PDF na mesma aba
+          </li>
+        </ol>
+      </Card>
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Card className="p-4 border-brand-orange/30">
@@ -255,7 +273,10 @@ export default async function FinancePage({
                     <MarginBadge percent={r.marginPercent} atRisk={r.marginAtRisk} />
                   </TableCell>
                   <TableCell>
-                    <PaymentStatusBadge status={r.paymentStatus as PaymentStatus} />
+                    <FinanceRowPayment
+                      projectId={r.projectId}
+                      status={r.paymentStatus as PaymentStatus}
+                    />
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {r.receivedAt ? formatDateShort(r.receivedAt) : "—"}

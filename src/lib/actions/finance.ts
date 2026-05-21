@@ -3,8 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ProjectCostSchema, type ProjectCostFormValues } from "@/lib/schemas/project-cost";
+import {
+  ProjectFinancePaymentSchema,
+  type ProjectFinancePaymentFormValues,
+} from "@/lib/schemas/project-finance-payment";
+import { normalizeFinancePayment } from "@/lib/finance/normalize-payment";
 import { durationBetween } from "@/lib/format";
-import type { ProjectCost, TimeSession } from "@/types/database";
+import type { PaymentStatus, ProjectCost, TimeSession } from "@/types/database";
 
 export type ActionResult<T = unknown> =
   | { ok: true; data?: T }
@@ -37,6 +42,65 @@ export async function listProjectCosts(projectId: string): Promise<ProjectCost[]
     return [];
   }
   return (data ?? []) as ProjectCost[];
+}
+
+function revalidateFinancePaths(projectId: string) {
+  revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/projects");
+  revalidatePath("/finance");
+  revalidatePath("/dashboard");
+}
+
+export async function updateProjectFinancePayment(
+  projectId: string,
+  values: ProjectFinancePaymentFormValues,
+): Promise<ActionResult> {
+  const parsed = ProjectFinancePaymentSchema.safeParse(values);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("projects")
+    .update(normalizeFinancePayment(parsed.data))
+    .eq("id", projectId);
+
+  if (error) {
+    console.error("[updateProjectFinancePayment]", error);
+    return { ok: false, error: "Não foi possível salvar o financeiro." };
+  }
+
+  revalidateFinancePaths(projectId);
+  return { ok: true };
+}
+
+/** Atualização rápida de status (lista /finance) — preenche datas automaticamente. */
+export async function setProjectPaymentStatus(
+  projectId: string,
+  paymentStatus: PaymentStatus,
+): Promise<ActionResult> {
+  const supabase = await createSupabaseServerClient();
+  const { data: project, error: fetchError } = await supabase
+    .from("projects")
+    .select("contract_value, invoiced_at, received_at")
+    .eq("id", projectId)
+    .maybeSingle();
+
+  if (fetchError || !project) {
+    return { ok: false, error: "Projeto não encontrado." };
+  }
+
+  return updateProjectFinancePayment(projectId, {
+    contract_value:
+      project.contract_value != null ? String(project.contract_value) : "",
+    payment_status: paymentStatus,
+    invoiced_at: project.invoiced_at ?? "",
+    received_at: project.received_at ?? "",
+  });
 }
 
 export async function createProjectCost(

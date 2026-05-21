@@ -278,6 +278,7 @@ export default async function ProjectDetailPage({
           projectId={project.id}
           costs={costs}
           summary={finance}
+          contractValue={project.contract_value}
           paymentStatus={project.payment_status}
           invoicedAt={project.invoiced_at}
           receivedAt={project.received_at}

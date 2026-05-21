@@ -224,6 +224,14 @@ export function ProjectForm({
         </p>
       </div>
 
+      <p className="text-xs text-muted-foreground">
+        Contrato e pagamento no dia a dia: use a aba{" "}
+        <a href="#financeiro" className="text-brand-yellow hover:underline">
+          Financeiro
+        </a>{" "}
+        do projeto (atalhos + custos + arquivos).
+      </p>
+
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label>Pagamento</Label>
