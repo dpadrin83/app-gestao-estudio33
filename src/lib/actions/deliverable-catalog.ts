@@ -430,6 +430,26 @@ export async function importCatalogToProject(
   return { ok: true, data: { count } };
 }
 
+export async function findCatalogGroupIdByName(
+  name: string,
+): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+  const target = name.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("deliverable_catalog_groups")
+    .select("id, name");
+
+  if (error) {
+    console.error("[findCatalogGroupIdByName]", error);
+    return null;
+  }
+
+  const row = (data ?? []).find(
+    (g) => g.name.trim().toLowerCase() === target,
+  );
+  return row?.id ?? null;
+}
+
 /** Importa todas as etapas de uma área do catálogo para o projeto. */
 export async function importCatalogGroupToProject(
   projectId: string,

@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, AlertTriangle } from "lucide-react";
+import { QuickProjectDialog } from "@/components/projects/quick-project-dialog";
+import { isInternalProjectsClient } from "@/lib/projects/internal-client";
 import { ProjectStatusBadge } from "@/components/project-status-badge";
 import {
   ProjectFilters,
@@ -106,10 +108,13 @@ export default async function ProjectsPage({
         title="Projetos"
         description="Views rápidas, progresso do cronograma e timer na lista."
         action={
-          <Link href="/projects/new" className={buttonVariants()}>
-            <Plus className="size-4" />
-            Novo projeto
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <QuickProjectDialog />
+            <Link href="/projects/new" className={buttonVariants()}>
+              <Plus className="size-4" />
+              Novo projeto
+            </Link>
+          </div>
         }
       />
 
@@ -185,7 +190,13 @@ export default async function ProjectsPage({
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {p.client?.name ?? "—"}
+                    {isInternalProjectsClient(p.client?.name) ? (
+                      <span className="text-brand-orange" title="Vincule um cliente na ficha do projeto">
+                        Interno · vincular depois
+                      </span>
+                    ) : (
+                      (p.client?.name ?? "—")
+                    )}
                   </TableCell>
                   <TableCell>
                     <ProjectStatusBadge status={p.status} />

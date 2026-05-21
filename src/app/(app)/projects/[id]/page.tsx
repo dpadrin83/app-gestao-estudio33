@@ -33,6 +33,7 @@ import { getCatalogStructure } from "@/lib/actions/deliverable-catalog";
 import { listStudioProfessionals } from "@/lib/actions/project-macro-plan";
 import { ProjectTabs } from "@/components/projects/project-tabs";
 import { ProjectDeleteButton } from "@/components/projects/project-delete-button";
+import { isInternalProjectsClient } from "@/lib/projects/internal-client";
 import { serviceLineLabels } from "@/lib/format";
 import { ProjectFinance } from "../project-finance";
 import { SessionsList } from "../sessions-list";
@@ -157,6 +158,16 @@ export default async function ProjectDetailPage({
           </p>
         </Card>
       </div>
+
+      {isInternalProjectsClient(project.client?.name) && (
+        <p className="mb-4 rounded-lg border border-brand-orange/30 bg-brand-orange/5 px-3 py-2 text-sm text-muted-foreground">
+          Projeto em modo rápido — em{" "}
+          <a href="#dados" className="font-medium text-brand-orange hover:underline">
+            Dados do projeto
+          </a>{" "}
+          escolha o cliente real quando quiser.
+        </p>
+      )}
 
       {project.service_line && (
         <p className="mb-6 text-sm text-muted-foreground">
