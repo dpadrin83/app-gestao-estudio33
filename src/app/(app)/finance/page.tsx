@@ -59,9 +59,17 @@ export default async function FinancePage({
   return (
     <>
       <PageHeader
-        eyebrow="Centro financeiro"
+        eyebrow="Financeiro"
         title="Fluxo de caixa"
-        description="Caixa operacional do estúdio: entradas, saídas, extrato e contas a receber. Lançamentos por projeto; conciliação bancária na próxima fase."
+        description="Visualização do caixa — entradas, saídas, extrato e contas a receber. Os lançamentos são feitos em cada projeto (aba Financeiro), não aqui."
+        action={
+          <Link
+            href="/projects"
+            className="inline-flex shrink-0 items-center rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted/50"
+          >
+            Ir aos projetos → lançar
+          </Link>
+        }
       />
 
       {/* KPIs — cara de sistema financeiro */}

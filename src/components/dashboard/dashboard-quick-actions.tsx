@@ -63,7 +63,7 @@ const actions = [
   },
   {
     key: "finance",
-    label: "Caixa",
+    label: "Financeiro",
     href: "/finance",
     icon: Wallet,
     accent: "border-brand-yellow/35 bg-brand-yellow/10 hover:bg-brand-yellow/18",
