@@ -15,6 +15,7 @@ const categoryLabels = {
   recebimento: "Recebimento",
   custo: "Custo",
   mao_de_obra: "Mão de obra",
+  estudio: "Estúdio",
 } as const;
 
 export function FinanceLedger({ entries }: { entries: FinanceLedgerEntry[] }) {
@@ -26,7 +27,8 @@ export function FinanceLedger({ entries }: { entries: FinanceLedgerEntry[] }) {
         </p>
         <h2 className="text-lg font-semibold tracking-tight">Movimentações</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Recebimentos, custos lançados e mão de obra (horas × taxa). Ordenado por data.
+          Projetos (recebimentos, custos, horas) + lançamentos do estúdio (cartão,
+          operacional). Ordenado por data.
         </p>
       </div>
       <Table>
@@ -65,19 +67,27 @@ export function FinanceLedger({ entries }: { entries: FinanceLedgerEntry[] }) {
                     {e.type === "credit" ? "Crédito" : "Débito"}
                   </span>
                   <span className="ml-2 text-[10px] text-muted-foreground">
-                    {categoryLabels[e.category]}
+                    {e.category === "estudio" && e.studioCategory
+                      ? e.studioCategory
+                      : categoryLabels[e.category]}
                   </span>
                 </TableCell>
                 <TableCell className="max-w-[240px] truncate text-sm">
                   {e.description}
                 </TableCell>
                 <TableCell>
-                  <Link
-                    href={`/projects/${e.projectId}#financeiro`}
-                    className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-                  >
-                    {e.projectName}
-                  </Link>
+                  {e.projectId ? (
+                    <Link
+                      href={`/projects/${e.projectId}#financeiro`}
+                      className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      {e.projectName}
+                    </Link>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      {e.projectName}
+                    </span>
+                  )}
                 </TableCell>
                 <TableCell
                   className={cn(

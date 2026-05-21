@@ -4,7 +4,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getHourlyRate, type ProjectFinanceSummary } from "@/lib/actions/finance";
 import { serviceLineLabels } from "@/lib/format";
 import { getMarginAlertPercent } from "@/lib/actions/settings";
-import type { PaymentStatus, ServiceLine } from "@/types/database";
+import type {
+  PaymentStatus,
+  ServiceLine,
+  StudioCashMovement,
+} from "@/types/database";
+import { studioCashCategoryLabels } from "@/lib/format";
 
 export type FinanceOverviewRow = {
   projectId: string;
@@ -48,11 +53,13 @@ export type FinanceLedgerEntry = {
   id: string;
   date: string;
   type: "credit" | "debit";
-  category: "recebimento" | "custo" | "mao_de_obra";
+  category: "recebimento" | "custo" | "mao_de_obra" | "estudio";
   description: string;
   amount: number;
-  projectId: string;
+  projectId: string | null;
   projectName: string;
+  source: "project" | "studio";
+  studioCategory?: string;
 };
 
 export type FinanceCashFlowMonth = {
@@ -85,6 +92,8 @@ export type FinancePageData = {
   clients: { id: string; name: string }[];
   cashFlow: FinanceCashFlow;
   ledger: FinanceLedgerEntry[];
+  studioMovements: StudioCashMovement[];
+  projectOptions: { id: string; name: string }[];
 };
 
 const MONTH_LABELS = [
@@ -136,6 +145,7 @@ function buildCashFlowAndLedger(
     ended_at: string | null;
     description: string | null;
   }>,
+  studioRows: StudioCashMovement[],
   hourlyRate: number,
   year: number,
   currentMonth: number,
@@ -164,6 +174,7 @@ function buildCashFlowAndLedger(
       amount: budget,
       projectId: p.id,
       projectName: p.name,
+      source: "project",
     });
   }
 
@@ -181,6 +192,7 @@ function buildCashFlowAndLedger(
       amount,
       projectId: c.project_id,
       projectName: projectNames.get(c.project_id) ?? "—",
+      source: "project",
     });
   }
 
@@ -203,6 +215,32 @@ function buildCashFlowAndLedger(
       amount: Math.round(amount * 100) / 100,
       projectId: s.project_id,
       projectName: projectNames.get(s.project_id) ?? "—",
+      source: "project",
+    });
+  }
+
+  for (const m of studioRows) {
+    const amount = Number(m.amount);
+    if (amount <= 0) continue;
+    const dateStr = m.occurred_at.slice(0, 10);
+    const isIn = m.movement_type === "in";
+    if (isIn) addToMonthBucket(inflowMonths, dateStr, amount, year);
+    else addToMonthBucket(outflowMonths, dateStr, amount, year);
+
+    const catLabel = studioCashCategoryLabels[m.category];
+    ledger.push({
+      id: `studio-${m.id}`,
+      date: dateStr,
+      type: isIn ? "credit" : "debit",
+      category: "estudio",
+      description: m.description,
+      amount,
+      projectId: m.project_id,
+      projectName: m.project_id
+        ? (projectNames.get(m.project_id) ?? "—")
+        : "Estúdio",
+      source: "studio",
+      studioCategory: catLabel,
     });
   }
 
@@ -293,7 +331,7 @@ export async function getFinancePageData(): Promise<FinancePageData> {
   const projectList = projects ?? [];
   const projectIds = projectList.map((p) => p.id);
 
-  const [costsRes, sessionsRes] = await Promise.all([
+  const [costsRes, sessionsRes, studioRes] = await Promise.all([
     projectIds.length
       ? supabase
           .from("project_costs")
@@ -306,10 +344,16 @@ export async function getFinancePageData(): Promise<FinancePageData> {
           .select("id, project_id, started_at, ended_at, description")
           .in("project_id", projectIds)
       : Promise.resolve({ data: [] as const }),
+    supabase
+      .from("studio_cash_movements")
+      .select("*")
+      .order("occurred_at", { ascending: false })
+      .limit(200),
   ]);
 
   const allCosts = costsRes.data ?? [];
   const allSessions = sessionsRes.data ?? [];
+  const studioMovements = (studioRes.data ?? []) as StudioCashMovement[];
 
   const costsByProject = new Map<string, number>();
   for (const c of allCosts ?? []) {
@@ -456,6 +500,7 @@ export async function getFinancePageData(): Promise<FinancePageData> {
       ended_at: string | null;
       description: string | null;
     }[],
+    studioMovements,
     hourlyRate,
     now.getFullYear(),
     now.getMonth(),
@@ -471,6 +516,8 @@ export async function getFinancePageData(): Promise<FinancePageData> {
     clients: [...clientsMap.entries()].map(([id, name]) => ({ id, name })),
     cashFlow,
     ledger,
+    studioMovements,
+    projectOptions: projectList.map((p) => ({ id: p.id, name: p.name })),
   };
 }
 

@@ -17,6 +17,7 @@ import { FinanceCashFlowChart } from "@/components/finance/finance-cash-flow-cha
 import { FinanceLedger } from "@/components/finance/finance-ledger";
 import { FinanceReconciliationPanel } from "@/components/finance/finance-reconciliation-panel";
 import { FinanceReceivablesPipeline } from "@/components/finance/finance-receivables-pipeline";
+import { StudioCashEntryPanel } from "@/components/finance/studio-cash-entry-panel";
 import { MarginBadge } from "@/components/finance/margin-badge";
 import { getFinancePageData } from "@/lib/queries/finance-overview";
 import { formatCurrency, formatDateShort } from "@/lib/format";
@@ -61,16 +62,15 @@ export default async function FinancePage({
       <PageHeader
         eyebrow="Financeiro"
         title="Fluxo de caixa"
-        description="Visualização do caixa — entradas, saídas, extrato e contas a receber. Os lançamentos são feitos em cada projeto (aba Financeiro), não aqui."
-        action={
-          <Link
-            href="/projects"
-            className="inline-flex shrink-0 items-center rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted/50"
-          >
-            Ir aos projetos → lançar
-          </Link>
-        }
+        description="Caixa do estúdio: lance gastos de cartão e operacional aqui; recebimentos e custos de job na aba Financeiro de cada projeto."
       />
+
+      <div className="mb-6">
+        <StudioCashEntryPanel
+          movements={data.studioMovements}
+          projectOptions={data.projectOptions}
+        />
+      </div>
 
       {/* KPIs — cara de sistema financeiro */}
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

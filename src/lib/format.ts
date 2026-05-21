@@ -122,6 +122,18 @@ export const paymentStatusLabels = {
   received: "recebido",
 } as const;
 
+export const studioCashCategoryLabels = {
+  operational: "Operacional",
+  software: "Software / assinatura",
+  tax: "Impostos",
+  marketing: "Marketing",
+  equipment: "Equipamento",
+  card: "Cartão",
+  payroll: "Folha / freela",
+  owner_draw: "Pró-labore / retirada",
+  other: "Outro",
+} as const;
+
 export const financeDocumentKindLabels = {
   contract: "Contrato",
   invoice: "Nota fiscal / NF",

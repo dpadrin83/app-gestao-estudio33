@@ -335,6 +335,31 @@ export interface ProjectCost {
 
 export type FinanceDocumentKind = "contract" | "invoice" | "receipt" | "other";
 
+export type StudioCashMovementType = "in" | "out";
+
+export type StudioCashCategory =
+  | "operational"
+  | "software"
+  | "tax"
+  | "marketing"
+  | "equipment"
+  | "card"
+  | "payroll"
+  | "owner_draw"
+  | "other";
+
+export interface StudioCashMovement {
+  id: string;
+  movement_type: StudioCashMovementType;
+  amount: number;
+  occurred_at: string;
+  description: string;
+  category: StudioCashCategory;
+  project_id: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
 export interface ProjectFinanceDocument {
   id: string;
   project_id: string;
