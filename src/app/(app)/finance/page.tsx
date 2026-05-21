@@ -13,11 +13,17 @@ import {
 import { FinanceFilters } from "@/components/finance/finance-filters";
 import { FinanceExportButton } from "@/components/finance/finance-export-button";
 import { FinanceRowPayment } from "@/components/finance/finance-row-payment";
+import { FinanceCashFlowChart } from "@/components/finance/finance-cash-flow-chart";
+import { FinanceLedger } from "@/components/finance/finance-ledger";
+import { FinanceReconciliationPanel } from "@/components/finance/finance-reconciliation-panel";
+import { FinanceReceivablesPipeline } from "@/components/finance/finance-receivables-pipeline";
 import { MarginBadge } from "@/components/finance/margin-badge";
 import { getFinancePageData } from "@/lib/queries/finance-overview";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 import type { FinanceOverviewRow } from "@/lib/queries/finance-overview";
 import type { PaymentStatus } from "@/types/database";
+import { cn } from "@/lib/utils";
+import { TrendingDown, TrendingUp, Wallet, PiggyBank } from "lucide-react";
 
 function filterRows(
   rows: FinanceOverviewRow[],
@@ -44,160 +50,108 @@ export default async function FinancePage({
   const params = await searchParams;
   const data = await getFinancePageData();
   const filtered = filterRows(data.rows, params);
-
-  const totals = filtered.reduce(
-    (acc, r) => {
-      acc.budget += r.budget;
-      acc.spent += r.costsTotal + r.laborCost;
-      acc.margin += r.margin;
-      if (r.margin < 0) acc.negative += 1;
-      return acc;
-    },
-    { budget: 0, spent: 0, margin: 0, negative: 0 },
-  );
+  const { cashFlow } = data;
+  const pipelineTotal =
+    data.receivables.toInvoice +
+    data.receivables.invoicedOpen +
+    data.receivables.receivedThisMonth;
 
   return (
     <>
       <PageHeader
-        eyebrow="Financeiro"
-        title="Visão por projeto"
-        description={`Recebíveis, custos e margem. Altere o status de pagamento na tabela ou abra o projeto → Financeiro. Alerta de margem < ${data.marginAlertPercent}%.`}
+        eyebrow="Centro financeiro"
+        title="Fluxo de caixa"
+        description="Caixa operacional do estúdio: entradas, saídas, extrato e contas a receber. Lançamentos por projeto; conciliação bancária na próxima fase."
       />
 
-      <Card className="mb-6 border-brand-yellow/25 bg-brand-yellow/5 p-4">
-        <p className="text-sm font-medium">Rotina financeira</p>
-        <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-muted-foreground">
-          <li>
-            <strong className="text-foreground">Fechou contrato</strong> — projeto →
-            Financeiro: valor + «a faturar»
-          </li>
-          <li>
-            <strong className="text-foreground">Emitiu NF</strong> — botão «faturado» ou
-            select na tabela abaixo
-          </li>
-          <li>
-            <strong className="text-foreground">Recebeu</strong> — «recebido» + data (entra
-            no mês) · lance custos e anexe PDF na mesma aba
-          </li>
-        </ol>
-      </Card>
-
-      <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <Card className="p-4 border-brand-orange/30">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            A faturar
-          </p>
-          <p className="mt-2 font-mono text-xl font-bold">
-            {formatCurrency(data.receivables.toInvoice)}
-          </p>
-        </Card>
-        <Card className="p-4 border-brand-blue/30">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Faturado (em aberto)
-          </p>
-          <p className="mt-2 font-mono text-xl font-bold">
-            {formatCurrency(data.receivables.invoicedOpen)}
-          </p>
-        </Card>
-        <Card className="p-4 border-success/30">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Recebido no mês
-          </p>
-          <p className="mt-2 font-mono text-xl font-bold text-success">
-            {formatCurrency(data.receivables.receivedThisMonth)}
-          </p>
-        </Card>
-        <Card className="p-4">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Orçamento (filtro)
-          </p>
-          <p className="mt-2 font-mono text-xl font-bold">{formatCurrency(totals.budget)}</p>
-        </Card>
-        <Card className="p-4">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Custos + horas
-          </p>
-          <p className="mt-2 font-mono text-xl font-bold">{formatCurrency(totals.spent)}</p>
-        </Card>
-        <Card className="p-4">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            Margem (filtro)
-          </p>
+      {/* KPIs — cara de sistema financeiro */}
+      <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="border-brand-yellow/30 bg-brand-yellow/[0.06] p-5">
+          <div className="flex items-start justify-between">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              Resultado do mês
+            </p>
+            <PiggyBank className="size-4 text-brand-yellow" />
+          </div>
           <p
-            className={`mt-2 font-mono text-xl font-bold ${
-              totals.margin < 0 ? "text-destructive" : "text-success"
-            }`}
+            className={cn(
+              "mt-2 font-mono text-2xl font-bold",
+              cashFlow.monthNet >= 0 ? "text-success" : "text-destructive",
+            )}
           >
-            {formatCurrency(totals.margin)}
+            {formatCurrency(cashFlow.monthNet)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Entradas − saídas (caixa operacional)
+          </p>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-start justify-between">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              Entradas no mês
+            </p>
+            <TrendingUp className="size-4 text-success" />
+          </div>
+          <p className="mt-2 font-mono text-2xl font-bold text-success">
+            {formatCurrency(cashFlow.monthInflow)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            YTD {formatCurrency(cashFlow.ytdInflow)}
+          </p>
+        </Card>
+
+        <Card className="p-5">
+          <div className="flex items-start justify-between">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              Saídas no mês
+            </p>
+            <TrendingDown className="size-4 text-destructive" />
+          </div>
+          <p className="mt-2 font-mono text-2xl font-bold text-destructive">
+            {formatCurrency(cashFlow.monthOutflow)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            YTD {formatCurrency(cashFlow.ytdOutflow)}
+          </p>
+        </Card>
+
+        <Card className="border-brand-purple/25 p-5">
+          <div className="flex items-start justify-between">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              A receber (pipeline)
+            </p>
+            <Wallet className="size-4 text-brand-purple" />
+          </div>
+          <p className="mt-2 font-mono text-2xl font-bold">
+            {formatCurrency(pipelineTotal)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Contratado ainda não no caixa
           </p>
         </Card>
       </div>
 
-      <div className="mb-8 grid gap-6 lg:grid-cols-2">
-        <Card className="p-5">
-          <h2 className="text-sm font-semibold">Top clientes (recebido)</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Por valor de projetos com status recebido.
-          </p>
-          {data.topClients.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">Sem recebimentos registrados.</p>
-          ) : (
-            <ul className="mt-4 space-y-3">
-              {data.topClients.map((c, i) => (
-                <li key={c.clientId} className="flex items-center justify-between gap-2">
-                  <span className="text-sm">
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {i + 1}.
-                    </span>{" "}
-                    {c.clientName}
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      ({c.projectCount} proj.)
-                    </span>
-                  </span>
-                  <span className="font-mono text-sm font-semibold">
-                    {formatCurrency(c.revenueReceived)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+      <div className="mb-6 grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <FinanceCashFlowChart cashFlow={cashFlow} />
+        </div>
+        <FinanceReconciliationPanel />
+      </div>
 
-        <Card className="p-5">
-          <h2 className="text-sm font-semibold">Ticket médio por área</h2>
-          {data.ticketsByLine.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Defina a área E33 nos projetos para ver médias.
-            </p>
-          ) : (
-            <ul className="mt-4 space-y-2">
-              {data.ticketsByLine.map((t) => (
-                <li
-                  key={t.serviceLine}
-                  className="flex justify-between gap-2 text-sm"
-                >
-                  <span className="text-muted-foreground">{t.label}</span>
-                  <span className="font-mono font-medium">
-                    {formatCurrency(t.avgContract)}
-                    <span className="ml-1 text-[10px] text-muted-foreground">
-                      ({t.projectCount})
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+      <div className="mb-6">
+        <FinanceReceivablesPipeline receivables={data.receivables} />
+      </div>
+
+      <div className="mb-8">
+        <FinanceLedger entries={data.ledger} />
       </div>
 
       {data.atRisk.length > 0 && (
         <Card className="mb-6 border-warning/40 bg-warning/5 p-5">
           <h2 className="text-sm font-semibold text-warning">
-            Em risco financeiro ({data.atRisk.length})
+            Rentabilidade em risco ({data.atRisk.length})
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Margem abaixo de {data.marginAlertPercent}% — ajuste em Configurações.
-          </p>
           <ul className="mt-3 flex flex-wrap gap-2">
             {data.atRisk.slice(0, 8).map((r) => (
               <li key={r.projectId}>
@@ -214,11 +168,18 @@ export default async function FinancePage({
         </Card>
       )}
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Suspense fallback={null}>
-          <FinanceFilters clients={data.clients} />
-        </Suspense>
-        <FinanceExportButton rows={filtered} />
+      <div className="mb-4 rounded-2xl border border-border bg-muted/20 px-5 py-4">
+        <h2 className="text-sm font-semibold">Análise por projeto</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Margem e status de cobrança — operação detalhada. Lançamentos em cada projeto →
+          Financeiro.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <Suspense fallback={null}>
+            <FinanceFilters clients={data.clients} />
+          </Suspense>
+          <FinanceExportButton rows={filtered} />
+        </div>
       </div>
 
       <Card className="overflow-hidden">
@@ -227,11 +188,11 @@ export default async function FinancePage({
             <TableRow>
               <TableHead>Projeto</TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Orçamento</TableHead>
-              <TableHead>Custos</TableHead>
-              <TableHead>Margem</TableHead>
+              <TableHead className="text-right">Contrato</TableHead>
+              <TableHead className="text-right">Saídas</TableHead>
+              <TableHead className="text-right">Resultado</TableHead>
               <TableHead>%</TableHead>
-              <TableHead>Pagamento</TableHead>
+              <TableHead>Cobrança</TableHead>
               <TableHead>Recebido</TableHead>
             </TableRow>
           </TableHeader>
@@ -256,16 +217,17 @@ export default async function FinancePage({
                   <TableCell className="text-sm text-muted-foreground">
                     {r.clientName}
                   </TableCell>
-                  <TableCell className="font-mono text-sm">
+                  <TableCell className="text-right font-mono text-sm">
                     {formatCurrency(r.budget)}
                   </TableCell>
-                  <TableCell className="font-mono text-sm">
+                  <TableCell className="text-right font-mono text-sm text-destructive/90">
                     {formatCurrency(r.costsTotal + r.laborCost)}
                   </TableCell>
                   <TableCell
-                    className={`font-mono text-sm font-semibold ${
-                      r.margin < 0 ? "text-destructive" : "text-success"
-                    }`}
+                    className={cn(
+                      "text-right font-mono text-sm font-semibold",
+                      r.margin < 0 ? "text-destructive" : "text-success",
+                    )}
                   >
                     {formatCurrency(r.margin)}
                   </TableCell>

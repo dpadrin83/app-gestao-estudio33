@@ -28,7 +28,7 @@ const items: Item[] = [
   { href: "/catalog/deliverables", label: "Catálogo", icon: ListChecks, dot: "bg-brand-purple/80" },
   { href: "/schedule",  label: "Cronograma", icon: GanttChart,     dot: "bg-brand-blue" },
   { href: "/services",  label: "Acessos",    icon: Globe,          dot: "bg-brand-pink" },
-  { href: "/finance",   label: "Financeiro", icon: Wallet,         dot: "bg-brand-yellow" },
+  { href: "/finance",   label: "Fluxo de caixa", icon: Wallet,     dot: "bg-brand-yellow" },
   { href: "/settings",  label: "Configurações", icon: Settings,   dot: "bg-muted-foreground" },
 ];
 

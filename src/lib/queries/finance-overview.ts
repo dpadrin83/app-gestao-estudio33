@@ -44,6 +44,37 @@ export type FinanceServiceLineTicket = {
   avgContract: number;
 };
 
+export type FinanceLedgerEntry = {
+  id: string;
+  date: string;
+  type: "credit" | "debit";
+  category: "recebimento" | "custo" | "mao_de_obra";
+  description: string;
+  amount: number;
+  projectId: string;
+  projectName: string;
+};
+
+export type FinanceCashFlowMonth = {
+  key: string;
+  label: string;
+  inflow: number;
+  outflow: number;
+  net: number;
+  isCurrent: boolean;
+};
+
+export type FinanceCashFlow = {
+  year: number;
+  months: FinanceCashFlowMonth[];
+  ytdInflow: number;
+  ytdOutflow: number;
+  ytdNet: number;
+  monthInflow: number;
+  monthOutflow: number;
+  monthNet: number;
+};
+
 export type FinancePageData = {
   rows: FinanceOverviewRow[];
   receivables: FinanceReceivablesSummary;
@@ -52,7 +83,158 @@ export type FinancePageData = {
   ticketsByLine: FinanceServiceLineTicket[];
   marginAlertPercent: number;
   clients: { id: string; name: string }[];
+  cashFlow: FinanceCashFlow;
+  ledger: FinanceLedgerEntry[];
 };
+
+const MONTH_LABELS = [
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
+] as const;
+
+function addToMonthBucket(
+  buckets: number[],
+  dateStr: string,
+  amount: number,
+  year: number,
+) {
+  const d = parseISO(dateStr);
+  if (!isValid(d) || d.getFullYear() !== year) return;
+  buckets[d.getMonth()] += amount;
+}
+
+function buildCashFlowAndLedger(
+  projectList: Array<{
+    id: string;
+    name: string;
+    contract_value: number | null;
+    payment_status: PaymentStatus;
+    received_at: string | null;
+    updated_at: string;
+  }>,
+  costRows: Array<{
+    id: string;
+    project_id: string;
+    description: string;
+    amount: number;
+    incurred_at: string;
+  }>,
+  sessionRows: Array<{
+    id: string;
+    project_id: string;
+    started_at: string;
+    ended_at: string | null;
+    description: string | null;
+  }>,
+  hourlyRate: number,
+  year: number,
+  currentMonth: number,
+): { cashFlow: FinanceCashFlow; ledger: FinanceLedgerEntry[] } {
+  const inflowMonths = Array.from({ length: 12 }, () => 0);
+  const outflowMonths = Array.from({ length: 12 }, () => 0);
+  const projectNames = new Map(projectList.map((p) => [p.id, p.name]));
+  const ledger: FinanceLedgerEntry[] = [];
+
+  for (const p of projectList) {
+    const budget = p.contract_value ?? 0;
+    if (budget <= 0 || p.payment_status !== "received") continue;
+    const dateStr = receivedDateForChart(
+      p.received_at,
+      p.payment_status,
+      p.updated_at,
+    );
+    if (!dateStr) continue;
+    addToMonthBucket(inflowMonths, dateStr, budget, year);
+    ledger.push({
+      id: `in-${p.id}-${dateStr}`,
+      date: dateStr,
+      type: "credit",
+      category: "recebimento",
+      description: `Recebimento · ${p.name}`,
+      amount: budget,
+      projectId: p.id,
+      projectName: p.name,
+    });
+  }
+
+  for (const c of costRows) {
+    const amount = Number(c.amount);
+    if (amount <= 0) continue;
+    const dateStr = c.incurred_at.slice(0, 10);
+    addToMonthBucket(outflowMonths, dateStr, amount, year);
+    ledger.push({
+      id: `cost-${c.id}`,
+      date: dateStr,
+      type: "debit",
+      category: "custo",
+      description: c.description,
+      amount,
+      projectId: c.project_id,
+      projectName: projectNames.get(c.project_id) ?? "—",
+    });
+  }
+
+  for (const s of sessionRows) {
+    if (!s.ended_at) continue;
+    const end = new Date(s.ended_at).getTime();
+    const ms = Math.max(0, end - new Date(s.started_at).getTime());
+    const amount = (ms / 3_600_000) * hourlyRate;
+    if (amount <= 0) continue;
+    const dateStr = s.started_at.slice(0, 10);
+    addToMonthBucket(outflowMonths, dateStr, amount, year);
+    ledger.push({
+      id: `labor-${s.id}`,
+      date: dateStr,
+      type: "debit",
+      category: "mao_de_obra",
+      description: s.description?.trim()
+        ? `Mão de obra · ${s.description}`
+        : "Mão de obra · sessão",
+      amount: Math.round(amount * 100) / 100,
+      projectId: s.project_id,
+      projectName: projectNames.get(s.project_id) ?? "—",
+    });
+  }
+
+  ledger.sort((a, b) => b.date.localeCompare(a.date) || b.amount - a.amount);
+
+  const months: FinanceCashFlowMonth[] = MONTH_LABELS.map((label, i) => ({
+    key: `${year}-${i}`,
+    label,
+    inflow: inflowMonths[i] ?? 0,
+    outflow: outflowMonths[i] ?? 0,
+    net: (inflowMonths[i] ?? 0) - (outflowMonths[i] ?? 0),
+    isCurrent: i === currentMonth,
+  }));
+
+  const ytdInflow = inflowMonths.reduce((s, v) => s + v, 0);
+  const ytdOutflow = outflowMonths.reduce((s, v) => s + v, 0);
+
+  return {
+    cashFlow: {
+      year,
+      months,
+      ytdInflow,
+      ytdOutflow,
+      ytdNet: ytdInflow - ytdOutflow,
+      monthInflow: inflowMonths[currentMonth] ?? 0,
+      monthOutflow: outflowMonths[currentMonth] ?? 0,
+      monthNet:
+        (inflowMonths[currentMonth] ?? 0) - (outflowMonths[currentMonth] ?? 0),
+    },
+    ledger: ledger.slice(0, 50),
+  };
+}
 
 function marginPercent(budget: number, margin: number): number | null {
   if (budget <= 0) return null;
@@ -111,23 +293,23 @@ export async function getFinancePageData(): Promise<FinancePageData> {
   const projectList = projects ?? [];
   const projectIds = projectList.map((p) => p.id);
 
-  const [{ data: allCosts }, { data: allSessions }] = await Promise.all([
+  const [costsRes, sessionsRes] = await Promise.all([
     projectIds.length
-      ? supabase.from("project_costs").select("project_id, amount").in("project_id", projectIds)
-      : Promise.resolve({ data: [] as { project_id: string; amount: number }[] }),
+      ? supabase
+          .from("project_costs")
+          .select("id, project_id, description, amount, incurred_at")
+          .in("project_id", projectIds)
+      : Promise.resolve({ data: [] as const }),
     projectIds.length
       ? supabase
           .from("time_sessions")
-          .select("project_id, started_at, ended_at")
+          .select("id, project_id, started_at, ended_at, description")
           .in("project_id", projectIds)
-      : Promise.resolve({
-          data: [] as {
-            project_id: string;
-            started_at: string;
-            ended_at: string | null;
-          }[],
-        }),
+      : Promise.resolve({ data: [] as const }),
   ]);
+
+  const allCosts = costsRes.data ?? [];
+  const allSessions = sessionsRes.data ?? [];
 
   const costsByProject = new Map<string, number>();
   for (const c of allCosts ?? []) {
@@ -251,6 +433,34 @@ export async function getFinancePageData(): Promise<FinancePageData> {
   const clientsMap = new Map<string, string>();
   for (const r of rows) clientsMap.set(r.clientId, r.clientName);
 
+  const { cashFlow, ledger } = buildCashFlowAndLedger(
+    projectList.map((p) => ({
+      id: p.id,
+      name: p.name,
+      contract_value: p.contract_value,
+      payment_status: p.payment_status as PaymentStatus,
+      received_at: p.received_at,
+      updated_at: p.updated_at,
+    })),
+    (allCosts ?? []) as {
+      id: string;
+      project_id: string;
+      description: string;
+      amount: number;
+      incurred_at: string;
+    }[],
+    (allSessions ?? []) as {
+      id: string;
+      project_id: string;
+      started_at: string;
+      ended_at: string | null;
+      description: string | null;
+    }[],
+    hourlyRate,
+    now.getFullYear(),
+    now.getMonth(),
+  );
+
   return {
     rows,
     receivables: { toInvoice, invoicedOpen, receivedThisMonth },
@@ -259,6 +469,8 @@ export async function getFinancePageData(): Promise<FinancePageData> {
     ticketsByLine,
     marginAlertPercent,
     clients: [...clientsMap.entries()].map(([id, name]) => ({ id, name })),
+    cashFlow,
+    ledger,
   };
 }
 
