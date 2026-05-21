@@ -73,6 +73,45 @@ function completionActualDates(
   return { actual_start_date: start, actual_end_date: today };
 }
 
+/** Encurta barras no Gantt ao concluir (principalmente se adiantou a etapa). */
+function completionPlannedDates(
+  current: {
+    planned_start_date: string;
+    actual_start_date: string | null;
+    estimated_duration_days: number;
+    kind: string;
+  },
+  today: string,
+): { planned_start_date: string; planned_end_date: string } {
+  const actual = completionActualDates(
+    {
+      planned_start_date: current.planned_start_date,
+      actual_start_date: current.actual_start_date,
+    },
+    today,
+  );
+
+  if (actual.actual_end_date < current.planned_start_date) {
+    return {
+      planned_start_date: actual.actual_start_date,
+      planned_end_date: actual.actual_end_date,
+    };
+  }
+
+  const duration =
+    current.kind === "milestone"
+      ? 0
+      : Math.max(current.estimated_duration_days, 1);
+  return {
+    planned_start_date: actual.actual_start_date,
+    planned_end_date: derivePlannedEnd(
+      actual.actual_start_date,
+      duration,
+      current.kind,
+    ),
+  };
+}
+
 function derivePlannedEnd(
   startIso: string,
   durationDays: number,
@@ -394,6 +433,15 @@ export async function patchActivity(
         },
         today,
       ),
+      completionPlannedDates(
+        {
+          planned_start_date: current.planned_start_date as string,
+          actual_start_date: current.actual_start_date as string | null,
+          estimated_duration_days: current.estimated_duration_days as number,
+          kind,
+        },
+        today,
+      ),
     );
   } else if (patch.status !== undefined) {
     next.actual_end_date = null;
@@ -469,7 +517,9 @@ export async function completePhaseActivities(
 
   const { data: rows, error: fetchError } = await supabase
     .from("activities")
-    .select("id, planned_start_date, actual_start_date")
+    .select(
+      "id, planned_start_date, actual_start_date, estimated_duration_days, kind",
+    )
     .eq("project_id", projectId)
     .eq("phase", phase)
     .neq("status", "completed");
@@ -491,11 +541,21 @@ export async function completePhaseActivities(
       },
       today,
     );
+    const planned = completionPlannedDates(
+      {
+        planned_start_date: row.planned_start_date as string,
+        actual_start_date: row.actual_start_date as string | null,
+        estimated_duration_days: row.estimated_duration_days as number,
+        kind: row.kind as string,
+      },
+      today,
+    );
     const { error } = await supabase
       .from("activities")
       .update({
         status: "completed",
         ...dates,
+        ...planned,
       })
       .eq("id", row.id);
     if (error) {
@@ -538,6 +598,15 @@ export async function updateActivity(
         {
           planned_start_date: parsed.data.planned_start_date,
           actual_start_date: (current?.actual_start_date as string | null) ?? null,
+        },
+        today,
+      ),
+      completionPlannedDates(
+        {
+          planned_start_date: parsed.data.planned_start_date,
+          actual_start_date: (current?.actual_start_date as string | null) ?? null,
+          estimated_duration_days: parsed.data.estimated_duration_days,
+          kind: parsed.data.kind,
         },
         today,
       ),
