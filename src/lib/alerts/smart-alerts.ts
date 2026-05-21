@@ -1,6 +1,7 @@
 import "server-only";
 import { addDays, format, subDays } from "date-fns";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getFinancePageData } from "@/lib/queries/finance-overview";
 
 export type SmartAlert = {
   id: string;
@@ -143,5 +144,33 @@ export async function getSmartAlerts(): Promise<SmartAlert[]> {
     });
   }
 
-  return alerts.slice(0, 10);
+  const finance = await getFinancePageData();
+  for (const r of finance.atRisk.slice(0, 4)) {
+    alerts.push({
+      id: `margin-risk-${r.projectId}`,
+      severity: "warning",
+      title: "Margem abaixo do limite",
+      detail: `${r.projectName} · ${r.marginPercent}% (meta ≥ ${finance.marginAlertPercent}%)`,
+      href: `/projects/${r.projectId}#financeiro`,
+    });
+  }
+
+  const overdueInvoice = finance.rows.filter(
+    (r) =>
+      r.paymentStatus === "invoiced" &&
+      r.budget > 0 &&
+      r.invoicedAt &&
+      r.invoicedAt < format(subDays(new Date(), 30), "yyyy-MM-dd"),
+  );
+  for (const r of overdueInvoice.slice(0, 3)) {
+    alerts.push({
+      id: `invoice-open-${r.projectId}`,
+      severity: "warning",
+      title: "Faturado há 30+ dias sem recebimento",
+      detail: `${r.projectName} · ${r.clientName}`,
+      href: `/projects/${r.projectId}#financeiro`,
+    });
+  }
+
+  return alerts.slice(0, 12);
 }

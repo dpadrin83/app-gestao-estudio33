@@ -9,6 +9,9 @@ import {
   type ProjectCostFormValues,
 } from "@/lib/schemas/project-cost";
 import { createProjectCost, deleteProjectCost } from "@/lib/actions/finance";
+import { ProjectFinanceDocuments } from "@/components/projects/project-finance-documents";
+import { PaymentStatusBadge } from "@/components/finance/payment-status-badge";
+import { MarginBadge } from "@/components/finance/margin-badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,20 +29,41 @@ import { toast } from "sonner";
 import {
   formatCurrency,
   formatDate,
+  formatDateShort,
   formatDuration,
 } from "@/lib/format";
-import type { ProjectCost } from "@/types/database";
+import type {
+  PaymentStatus,
+  ProjectCost,
+  ProjectFinanceDocument,
+} from "@/types/database";
 import type { ProjectFinanceSummary } from "@/lib/actions/finance";
 
 export function ProjectFinance({
   projectId,
   costs,
   summary,
+  paymentStatus,
+  invoicedAt,
+  receivedAt,
+  marginAlertPercent,
+  documents,
 }: {
   projectId: string;
   costs: ProjectCost[];
   summary: ProjectFinanceSummary;
+  paymentStatus: PaymentStatus;
+  invoicedAt: string | null;
+  receivedAt: string | null;
+  marginAlertPercent: number;
+  documents: ProjectFinanceDocument[];
 }) {
+  const marginPercent =
+    summary.budget > 0
+      ? Math.round((summary.margin / summary.budget) * 100)
+      : null;
+  const marginAtRisk =
+    marginPercent != null && marginPercent < marginAlertPercent;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const today = new Date().toISOString().slice(0, 10);
@@ -81,6 +105,44 @@ export function ProjectFinance({
 
   return (
     <div className="space-y-6">
+      <Card className="flex flex-wrap items-center gap-4 p-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase text-muted-foreground">
+            Pagamento
+          </p>
+          <div className="mt-1">
+            <PaymentStatusBadge status={paymentStatus} />
+          </div>
+        </div>
+        <div>
+          <p className="font-mono text-[10px] uppercase text-muted-foreground">
+            Faturado
+          </p>
+          <p className="mt-1 text-sm">
+            {invoicedAt ? formatDateShort(invoicedAt) : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="font-mono text-[10px] uppercase text-muted-foreground">
+            Recebido
+          </p>
+          <p className="mt-1 text-sm">
+            {receivedAt ? formatDateShort(receivedAt) : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="font-mono text-[10px] uppercase text-muted-foreground">
+            Margem %
+          </p>
+          <div className="mt-1">
+            <MarginBadge percent={marginPercent} atRisk={marginAtRisk} />
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Edite status e datas em Dados do projeto.
+        </p>
+      </Card>
+
       <div className="grid gap-3 sm:grid-cols-4">
         <Card className="p-4">
           <p className="font-mono text-[10px] uppercase text-muted-foreground">Orçamento</p>
@@ -175,6 +237,8 @@ export function ProjectFinance({
           </TableBody>
         </Table>
       </Card>
+
+      <ProjectFinanceDocuments projectId={projectId} documents={documents} />
     </div>
   );
 }

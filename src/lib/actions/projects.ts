@@ -69,8 +69,24 @@ export async function getProject(id: string): Promise<ProjectWithClient | null> 
 
 /* ─── create / update ─── */
 
+function emptyToNullDate(v: string | undefined): string | null {
+  return v && v !== "" ? v : null;
+}
+
 function normalize(values: ProjectFormValues) {
   const cv = values.contract_value;
+  const today = format(new Date(), "yyyy-MM-dd");
+  let invoiced_at = emptyToNullDate(values.invoiced_at);
+  let received_at = emptyToNullDate(values.received_at);
+
+  if (values.payment_status === "invoiced" && !invoiced_at) {
+    invoiced_at = today;
+  }
+  if (values.payment_status === "received") {
+    if (!invoiced_at) invoiced_at = today;
+    if (!received_at) received_at = today;
+  }
+
   return {
     client_id: values.client_id,
     name: values.name.trim(),
@@ -85,6 +101,8 @@ function normalize(values: ProjectFormValues) {
     contract_value:
       !cv || cv === "" ? null : Number(cv.replace(",", ".")),
     payment_status: values.payment_status,
+    invoiced_at,
+    received_at,
     service_line: !values.service_line ? null : values.service_line,
   };
 }

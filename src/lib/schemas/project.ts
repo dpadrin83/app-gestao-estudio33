@@ -48,6 +48,8 @@ export const ProjectSchema = z.object({
   expected_end_date: dateOrEmpty,
   contract_value: valueOrEmpty,
   payment_status: paymentStatusEnum,
+  invoiced_at: dateOrEmpty,
+  received_at: dateOrEmpty,
   service_line: z.union([serviceLineEnum, z.literal("")]).optional(),
 });
 

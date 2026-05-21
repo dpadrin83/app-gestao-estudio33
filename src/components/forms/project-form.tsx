@@ -56,6 +56,8 @@ export function ProjectForm({
           contract_value:
             initial.contract_value != null ? String(initial.contract_value) : "",
           payment_status: initial.payment_status,
+          invoiced_at: initial.invoiced_at ?? "",
+          received_at: initial.received_at ?? "",
           service_line: initial.service_line ?? "",
         }
       : {
@@ -68,6 +70,8 @@ export function ProjectForm({
           expected_end_date: "",
           contract_value: "",
           payment_status: "to_invoice",
+          invoiced_at: "",
+          received_at: "",
           service_line: "",
         },
   });
@@ -220,7 +224,7 @@ export function ProjectForm({
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label>Pagamento</Label>
           <Controller
@@ -241,6 +245,14 @@ export function ProjectForm({
               </Select>
             )}
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="invoiced_at">Data faturamento</Label>
+          <Input id="invoiced_at" type="date" {...register("invoiced_at")} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="received_at">Data recebimento</Label>
+          <Input id="received_at" type="date" {...register("received_at")} />
         </div>
       </div>
 

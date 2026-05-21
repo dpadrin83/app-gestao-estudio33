@@ -14,6 +14,7 @@ import type { ClientAccessKind } from "@/types/database";
 import { ProjectRowTimer } from "@/app/(app)/projects/project-row-timer";
 import { DashboardInsights } from "@/components/ai/dashboard-insights";
 import { DashboardPortfolioGantt } from "@/components/dashboard/dashboard-portfolio-gantt";
+import { DashboardQuickActions } from "@/components/dashboard/dashboard-quick-actions";
 import { PortfolioOverdueHeroAlert } from "@/components/dashboard/portfolio-overdue-hero-alert";
 import type {
   PortfolioGanttData,
@@ -88,16 +89,21 @@ export function HubDashboard({
     <>
       {/* Hero */}
       <header className="mb-7">
-        <span className="mb-3 block font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          Dashboard · {dateLabel}
-        </span>
-        <h1 className="text-4xl font-bold tracking-tight md:text-[42px] md:leading-[1.05]">
-          {greeting},{" "}
-          <span className="text-brand-grad">{firstName}.</span>
-        </h1>
-        <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-muted-foreground">
-          {heroSummary}
-        </p>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+          <div className="min-w-0 flex-1">
+            <span className="mb-3 block font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Dashboard · {dateLabel}
+            </span>
+            <h1 className="text-4xl font-bold tracking-tight md:text-[42px] md:leading-[1.05]">
+              {greeting},{" "}
+              <span className="text-brand-grad">{firstName}.</span>
+            </h1>
+            <p className="mt-3 max-w-[680px] text-[15px] leading-relaxed text-muted-foreground">
+              {heroSummary}
+            </p>
+          </div>
+          <DashboardQuickActions className="w-full shrink-0 lg:mt-10 lg:max-w-[520px] xl:max-w-[640px]" />
+        </div>
       </header>
 
       <PortfolioOverdueHeroAlert

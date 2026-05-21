@@ -118,26 +118,19 @@ export async function getProjectFinanceSummary(
 }
 
 export async function listFinanceOverview() {
-  const supabase = await createSupabaseServerClient();
-  const { data: projects } = await supabase
-    .from("projects")
-    .select("id, name, contract_value, payment_status, client:clients(name)")
-    .neq("status", "archived")
-    .order("name");
-
-  const summaries = await Promise.all(
-    (projects ?? []).map(async (p) => {
-      const fin = await getProjectFinanceSummary(p.id, p.contract_value);
-      const client = p.client as unknown as { name?: string } | null;
-      return {
-        projectId: p.id,
-        projectName: p.name,
-        clientName: client?.name ?? "—",
-        paymentStatus: p.payment_status,
-        ...fin,
-      };
-    }),
-  );
-
-  return summaries;
+  const { getFinancePageData } = await import("@/lib/queries/finance-overview");
+  const data = await getFinancePageData();
+  return data.rows.map((r) => ({
+    projectId: r.projectId,
+    projectName: r.projectName,
+    clientName: r.clientName,
+    paymentStatus: r.paymentStatus,
+    budget: r.budget,
+    costsTotal: r.costsTotal,
+    laborCost: r.laborCost,
+    margin: r.margin,
+    marginPercent: r.marginPercent,
+    invoicedAt: r.invoicedAt,
+    receivedAt: r.receivedAt,
+  }));
 }

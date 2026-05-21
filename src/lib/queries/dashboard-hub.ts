@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getActivityRiskSummary } from "@/lib/actions/activities";
 import { listFinanceOverview } from "@/lib/actions/finance";
+import { buildMonthlyReceivedTotals } from "@/lib/queries/finance-overview";
 import { getActiveSession } from "@/lib/actions/sessions";
 import { getSmartAlerts } from "@/lib/alerts/smart-alerts";
 import { listPendingDeliverables } from "@/lib/queries/pending-deliverables";
@@ -326,14 +327,17 @@ function buildFinanceChart(
   now: Date,
 ): HubDashboardData["finance"] {
   const year = now.getFullYear();
-  const monthly = Array.from({ length: 12 }, () => 0);
+  const monthly = buildMonthlyReceivedTotals(
+    rows.map((r) => ({
+      budget: r.budget,
+      paymentStatus: r.paymentStatus,
+      receivedAt: r.receivedAt ?? null,
+    })),
+    year,
+  );
   let annualBudget = 0;
-
   for (const r of rows) {
-    annualBudget += r.budget;
-    if (r.paymentStatus === "received" && r.budget > 0) {
-      monthly[now.getMonth()] += r.budget;
-    }
+    if (r.paymentStatus === "received") annualBudget += r.budget;
   }
 
   const max = Math.max(...monthly, 1);

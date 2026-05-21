@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { listActiveClients } from "@/lib/actions/projects";
 import { listProjectsEnriched } from "@/lib/queries/projects-list";
+import { batchProjectFinanceSummaries } from "@/lib/queries/finance-overview";
+import { getMarginAlertPercent } from "@/lib/actions/settings";
+import { PaymentStatusBadge } from "@/components/finance/payment-status-badge";
+import { MarginBadge } from "@/components/finance/margin-badge";
 import { PageHeader } from "@/components/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -91,7 +95,7 @@ export default async function ProjectsPage({
   );
   const clientFilter = params.client && params.client !== "all" ? params.client : undefined;
 
-  const [projects, clients, activeSession] = await Promise.all([
+  const [projects, clients, activeSession, marginAlertPercent] = await Promise.all([
     listProjectsEnriched({
       status: statusFilter,
       clientId: clientFilter,
@@ -99,7 +103,12 @@ export default async function ProjectsPage({
     }),
     listActiveClients(),
     getActiveSession(),
+    getMarginAlertPercent(),
   ]);
+
+  const financeByProject = await batchProjectFinanceSummaries(
+    projects.map((p) => ({ id: p.id, contract_value: p.contract_value })),
+  );
 
   return (
     <>
@@ -158,6 +167,8 @@ export default async function ProjectsPage({
                 <TableHead>Progresso</TableHead>
                 <TableHead>Início</TableHead>
                 <TableHead>Término previsto</TableHead>
+                <TableHead>Pagamento</TableHead>
+                <TableHead className="text-right">Margem</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
               </TableRow>
             </TableHeader>
@@ -225,6 +236,18 @@ export default async function ProjectsPage({
                     {p.expected_end_date
                       ? formatDateShort(p.expected_end_date)
                       : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <PaymentStatusBadge status={p.payment_status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <MarginBadge
+                      percent={financeByProject.get(p.id)?.marginPercent ?? null}
+                      atRisk={
+                        (financeByProject.get(p.id)?.marginPercent ?? 100) <
+                        marginAlertPercent
+                      }
+                    />
                   </TableCell>
                   <TableCell className="text-right font-mono text-xs">
                     {formatCurrency(p.contract_value)}

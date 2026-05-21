@@ -122,6 +122,13 @@ export const paymentStatusLabels = {
   received: "recebido",
 } as const;
 
+export const financeDocumentKindLabels = {
+  contract: "Contrato",
+  invoice: "Nota fiscal / NF",
+  receipt: "Comprovante",
+  other: "Outro",
+} as const;
+
 export const serviceLineLabels = {
   branding: "Branding / estratégia",
   identity: "Identidade visual",

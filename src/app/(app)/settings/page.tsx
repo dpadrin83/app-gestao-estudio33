@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { SettingsForm } from "@/components/forms/settings-form";
-import { getAppHourlyRate } from "@/lib/actions/settings";
+import { getAppHourlyRate, getMarginAlertPercent } from "@/lib/actions/settings";
 import { Card } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 export default async function SettingsPage() {
-  const hourlyRate = await getAppHourlyRate();
+  const [hourlyRate, marginAlertPercent] = await Promise.all([
+    getAppHourlyRate(),
+    getMarginAlertPercent(),
+  ]);
 
   return (
     <>
@@ -17,7 +20,10 @@ export default async function SettingsPage() {
         description="Ajustes globais da operação."
       />
       <div className="mb-8 max-w-lg">
-        <SettingsForm hourlyRate={hourlyRate} />
+        <SettingsForm
+          hourlyRate={hourlyRate}
+          marginAlertPercent={marginAlertPercent}
+        />
       </div>
 
       <Card className="mb-8 flex flex-col justify-between gap-4 p-6 sm:flex-row sm:items-center">

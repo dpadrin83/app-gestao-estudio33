@@ -18,6 +18,8 @@ import {
   getProjectFinanceSummary,
   listProjectCosts,
 } from "@/lib/actions/finance";
+import { listProjectFinanceDocuments } from "@/lib/actions/project-finance-documents";
+import { getMarginAlertPercent } from "@/lib/actions/settings";
 import { getActiveSession, listSessions } from "@/lib/actions/sessions";
 import { listTasksByProject } from "@/lib/actions/tasks";
 import { getProjectActivityFeed } from "@/lib/queries/project-activity";
@@ -70,6 +72,8 @@ export default async function ProjectDetailPage({
     deliverablePlan,
     catalogStructure,
     studioProfessionals,
+    financeDocuments,
+    marginAlertPercent,
   ] = await Promise.all([
     listActiveClients(),
     listSessions(id),
@@ -85,6 +89,8 @@ export default async function ProjectDetailPage({
     getDeliverablePlan(id),
     getCatalogStructure(),
     listStudioProfessionals(),
+    listProjectFinanceDocuments(id),
+    getMarginAlertPercent(),
   ]);
 
   const totalMs = sessions.reduce((acc, s) => {
@@ -268,7 +274,16 @@ export default async function ProjectDetailPage({
         Financeiro
       </h2>
       <div className="mb-10">
-        <ProjectFinance projectId={project.id} costs={costs} summary={finance} />
+        <ProjectFinance
+          projectId={project.id}
+          costs={costs}
+          summary={finance}
+          paymentStatus={project.payment_status}
+          invoicedAt={project.invoiced_at}
+          receivedAt={project.received_at}
+          marginAlertPercent={marginAlertPercent}
+          documents={financeDocuments}
+        />
       </div>
 
       <h2

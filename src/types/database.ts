@@ -63,6 +63,8 @@ export interface Project {
   expected_end_date: string | null;
   contract_value: number | null;
   payment_status: PaymentStatus;
+  invoiced_at: string | null;
+  received_at: string | null;
   service_line: ServiceLine | null;
   created_at: string;
   updated_at: string;
@@ -328,6 +330,20 @@ export interface ProjectCost {
   description: string;
   amount: number;
   incurred_at: string;
+  created_at: string;
+}
+
+export type FinanceDocumentKind = "contract" | "invoice" | "receipt" | "other";
+
+export interface ProjectFinanceDocument {
+  id: string;
+  project_id: string;
+  kind: FinanceDocumentKind;
+  title: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string | null;
+  file_size: number | null;
   created_at: string;
 }
 

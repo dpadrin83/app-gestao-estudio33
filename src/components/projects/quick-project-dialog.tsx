@@ -44,7 +44,15 @@ const defaults: QuickProjectFormValues = {
   setup_digital_schedule: true,
 };
 
-export function QuickProjectDialog() {
+type QuickProjectDialogProps = {
+  triggerClassName?: string;
+  triggerLabel?: React.ReactNode;
+};
+
+export function QuickProjectDialog({
+  triggerClassName,
+  triggerLabel,
+}: QuickProjectDialogProps = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -93,10 +101,16 @@ export function QuickProjectDialog() {
     >
       <DialogTrigger
         render={
-          <Button type="button" variant="outline" size="sm">
-            <Zap className="size-4" />
-            Lançar rápido
-          </Button>
+          triggerClassName ? (
+            <button type="button" className={triggerClassName}>
+              {triggerLabel}
+            </button>
+          ) : (
+            <Button type="button" variant="outline" size="sm">
+              <Zap className="size-4" />
+              Lançar rápido
+            </Button>
+          )
         }
       />
       <DialogContent className="sm:max-w-md">
