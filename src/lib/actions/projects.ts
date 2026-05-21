@@ -136,6 +136,43 @@ export async function updateProject(
   revalidatePath("/projects");
   revalidatePath(`/projects/${id}`);
   revalidatePath("/dashboard");
+  revalidatePath("/schedule");
+  revalidatePath("/finance");
+  return { ok: true };
+}
+
+export async function deleteProject(id: string): Promise<ActionResult> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: openSession } = await supabase
+    .from("time_sessions")
+    .select("id")
+    .eq("project_id", id)
+    .is("ended_at", null)
+    .maybeSingle();
+
+  if (openSession) {
+    return {
+      ok: false,
+      error: "Encerre o timer deste projeto antes de excluir.",
+    };
+  }
+
+  const { error } = await supabase.from("projects").delete().eq("id", id);
+
+  if (error) {
+    console.error("[deleteProject]", error);
+    return {
+      ok: false,
+      error: "Não foi possível excluir o projeto. Tente novamente.",
+    };
+  }
+
+  revalidatePath("/projects");
+  revalidatePath("/dashboard");
+  revalidatePath("/schedule");
+  revalidatePath("/finance");
+  revalidatePath("/clients");
   return { ok: true };
 }
 

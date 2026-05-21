@@ -32,6 +32,7 @@ import { getDeliverablePlan } from "@/lib/actions/deliverable-plan";
 import { getCatalogStructure } from "@/lib/actions/deliverable-catalog";
 import { listStudioProfessionals } from "@/lib/actions/project-macro-plan";
 import { ProjectTabs } from "@/components/projects/project-tabs";
+import { ProjectDeleteButton } from "@/components/projects/project-delete-button";
 import { serviceLineLabels } from "@/lib/format";
 import { ProjectFinance } from "../project-finance";
 import { SessionsList } from "../sessions-list";
@@ -114,6 +115,10 @@ export default async function ProjectDetailPage({
             >
               Voltar
             </Link>
+            <ProjectDeleteButton
+              projectId={project.id}
+              projectName={project.name}
+            />
           </div>
         }
       />
@@ -172,6 +177,16 @@ export default async function ProjectDetailPage({
       </h2>
       <div className="mb-10 rounded-2xl border border-border bg-card/50 p-6">
         <ProjectForm initial={project} clientOptions={clientOptions} />
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
+          <p className="text-sm text-muted-foreground">
+            Remover o projeto apaga cronograma, entregáveis, acessos e horas
+            vinculadas.
+          </p>
+          <ProjectDeleteButton
+            projectId={project.id}
+            projectName={project.name}
+          />
+        </div>
       </div>
 
       <h2
