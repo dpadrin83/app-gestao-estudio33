@@ -41,3 +41,6 @@ yarn-error.log*
 # Sistema
 .DS_Store
 *.pem
+
+# Config local do Claude Code (não versionar)
+.claude/
