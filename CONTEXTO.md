@@ -59,6 +59,26 @@ Cada fase é deployável e usável de forma independente. Não pular fase.
 - [x] PRD da Fase 8 ([prds/fase-8-plano-entregas-portal-fases.md](prds/fase-8-plano-entregas-portal-fases.md))
 - [x] **Fase 8 implementada** — área E33, plano de entregas ↔ cronograma, templates Branding/Conteúdo, portal com fases
 
+## Carteira de projetos — cadastrar e monitorar no Hub
+> Objetivo do Danilo: usar o Hub pra acompanhar TODOS os projetos num lugar só (estão começando a se sobrepor). Cadastro feito em **Projetos → "Lançar rápido"** (caixinha "Soluções Digitais" marcada importa o cronograma padrão; desmarcar nos que não são software).
+
+Projetos a cadastrar (status a confirmar projeto a projeto):
+- **App de Solicitações – Instituto Inovação Social** — JÁ NO AR / em produção.
+- **Pesquisa de Satisfação IIS** — é um app (formulário + área administrativa). É software → cadastrar com "Soluções Digitais" marcado. **Também precisa ser cadastrado.**
+- **Acervo Estúdio 33** (banco de imagens).
+- **Site novo do Estúdio 33** — em construção.
+- **App Memórias Pedrinho.**
+- **App Carla** (TCC).
+- **CNC – Sistema Interno** (Roteiroteca).
+- **Site VRA Advocacia.**
+- **Site Estúdio 33** (versão atual).
+- **App Figurinhas – Álbum Copa** (pessoal).
+- **Edital CEU Osasco 2026.**
+
+Pendências de produto observadas (NÃO construir agora — só anotado):
+- **Pesquisa de Satisfação IIS:** na área administrativa, criar **modelo de gráfico** (Danilo vai enviar o modelo). Objetivo final: **salvar a pesquisa por unidade**, com **gráfico** e **todas as respostas**.
+- **Manutenções e Solicitações de Melhoria:** o Hub ainda **não tem** uma área própria pra registrar manutenção/melhoria por projeto com status. Hoje o mais próximo é o Kanban de Tarefas. Feature a planejar.
+
 ## Como rodar localmente
 1. `npm install` (já feito)
 2. `cp .env.local.example .env.local` e preencher com chaves do seu projeto Supabase (ver [supabase/README.md](supabase/README.md))
