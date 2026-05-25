@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,6 +27,16 @@ export const metadata: Metadata = {
   title: "Hub · Estúdio 33",
   description:
     "Sistema de gestão interno do Estúdio 33 — briefing, projetos, cronograma, entregáveis e financeiro num só lugar.",
+  applicationName: "Hub Estúdio 33",
+  appleWebApp: {
+    capable: true,
+    title: "Hub E33",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0A0B10",
 };
 
 export default function RootLayout({
@@ -41,6 +52,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster position="top-right" />
+        <PwaRegister />
       </body>
     </html>
   );

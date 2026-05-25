@@ -9,6 +9,9 @@ const PUBLIC_PATHS = [
   "/login",
   "/auth/callback",
   "/api/integrations",
+  // PWA: precisam ser acessíveis sem login (o navegador os busca sem sessão).
+  "/manifest.webmanifest",
+  "/sw.js",
 ];
 const ADMIN_PREFIXES = [
   "/dashboard",
