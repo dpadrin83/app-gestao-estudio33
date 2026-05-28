@@ -20,6 +20,7 @@ export const serviceLineEnum = z.enum([
   "web_design",
   "web_dev",
   "hybrid",
+  "consulting",
 ]);
 
 const dateOrEmpty = z

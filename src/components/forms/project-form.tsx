@@ -171,7 +171,7 @@ export function ProjectForm({
       </div>
 
       <div className="space-y-2">
-        <Label>Área E33</Label>
+        <Label>Tipo de serviço</Label>
         <Controller
           control={control}
           name="service_line"
@@ -181,7 +181,7 @@ export function ProjectForm({
               onValueChange={(v) => field.onChange(v ?? "")}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione a linha de serviço…" />
+                <SelectValue placeholder="Selecione o tipo de serviço…" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Não definida</SelectItem>

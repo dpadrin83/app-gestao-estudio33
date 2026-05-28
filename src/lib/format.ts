@@ -148,6 +148,7 @@ export const serviceLineLabels = {
   web_design: "Soluções digitais — design",
   web_dev: "Soluções digitais — DEV",
   hybrid: "Projeto híbrido",
+  consulting: "Consultoria",
 } as const;
 
 export const projectLinkKindLabels = {
